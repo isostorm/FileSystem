@@ -12,7 +12,7 @@ import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 public class File {
 	/**
-	 * @invar Content
+	 * @invar Content TEST
 	 * 		  The content must be a valid content for this file
 	 * 		  | isValid(content)
 	 */
