@@ -1,5 +1,5 @@
 /**
- * A class of files involving a name, a content, a writable state, a creation time, 
+ * A class of files involving a name, a size, a writable state, a creation time, 
  * a time of last modification, a maximum file size and a writable state
  * 
  * 
@@ -12,41 +12,20 @@ import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 public class File {
 	/**
-	 * @invar Content TEST
-	 * 		  The content must be a valid content for this file
-	 * 		  | isValid(content)
+	 * @invar Size
+	 * 		  For each file the size must be a valid size
+	 * 		  | isValidSize(size)
 	 */
 	
 	private String name;
 	
-	private int content;
-	/**
-	 * @param  namem
-	 * 		   The name for this new file
-	 * @param  size
-	 * 		   The size of this new file
-	 * @param  writable
-	 * 		   The writable state of this new file
-	 * 
-	 * @effect The name of this new file is set to the given name
-	 * 		   | setName(name, true)
-	 * @effect The content of this new file is set to the given size
-	 * 		   | setContent(size)
-	 * @effect The writable state of this new file is set to the given flag with the initial parameter as true
-	 * 	       | setWritable(writable)
-	 * @post   The creation time equals to a date object containing the current time
-	 * 		   | creationTime == new Date()
-	 * @throws NotWritableException
-	 * 		   The user has no rights to change the name of the file
-	 * 		   | !isWritable()
-	 */
+
 	public File(String name, int size, boolean writable) throws NotWritableException
 	{
-		
-		setName(name, true);
-		setContent(size);
-		setWritable(writable);
+		setSize(size);
+		setName(name);
 		creationTime = new Date();
+		setWritable(writable);
 	}
 	/**
 	 * Initializes this new file with a given name
@@ -54,17 +33,13 @@ public class File {
 	 * @param  name
 	 * 		   The name for this new file
 	 * @effect The new file is initialized with the given name as its name,
-	 * 	 	   0 as its content and true as its writable state
+	 * 	 	   0 as its size and true as its writable state
 	 * 		   | this(name,0,true)
-	 * @throws NotWritableException
-	 * 		   The user has no rights to change the name of the file
-	 * 		   | !isWritable()
 	 */
 	 
 	public File(String name) throws NotWritableException
 	{
 		this(name,0,true);
-		
 	}
 	
 	/**
@@ -75,72 +50,131 @@ public class File {
 		return name;
 	}
 	/**@post If the given name contains only alphabetical and numerical characters and dots, hyphens and underscores, and the given name is of at least length 1, and the given name is effective, the new name is equal to the given name.
+	 * | if name.matches("[A-Za-z0-9._-]+")) then setName(name)
+			this.name = name;
 	 * @post If the old name was not set, new.name will be equal to "X".
+	 * @post If the old name was set, the modification time will be set to the current time.
+	 * | if(this.name != null) then setCurrentModificationTime()
 	 * @param name The name to set.
 	 * @throws NotWritableException
 	 * 		   The user has no rights to change the name of the file
 	 * 		   | !isWritable()
 	 * @see p.44-45
 	 */
-	public void setName(String name, boolean isInitial) throws NotWritableException{
+	public void setName(String name) throws NotWritableException{
 		
 		if(!isWritable())
-			throw new NotWritableException("You have no rights to change the content of the file.");
+			throw new NotWritableException("You have no rights to change the size of the file.");
 		
-		if(name.length() >= 1 && name.matches("[A-Za-z0-9._-]+")){
+		if(name.matches("[A-Za-z0-9._-]+")){
 			this.name = name;
 		}
-		else if (this.name == null)
-		{
+		
+		
+		if (this.name == null){
 			this.name = "X";
 		}
-		
-		if(!isInitial)
+		else {
 			setCurrentModificationTime();
+		}
+			
 	}
 	
-	/**@post If the given name contains only alphabetical and numerical characters and dots, hyphens and underscores, and the given name is of at least length 1, and the given name is effective, the new name is equal to the given name.
-	 * @post If the old name was not set, new.name will be equal to "X".
-	 * @param name The name to set.
-	 * @throws NotWritableException
+	private int size;
+	/**
+	 * @param  name
+	 * 		   The name for this new file
+	 * @param  size
+	 * 		   The size of this new file
+	 * @param  writable
+	 * 		   The writable state of this new file
+	 * 
+	 * @effect The name of this new file is set to the given name
+	 * 		   | setName(name, true)
+	 * @effect The size of this new file is set to the given size
+	 * 		   | setSize(size)
+	 * @effect The writable state of this new file is set to the given flag with the initial parameter as true
+	 * 	       | setWritable(writable)
+	 * @post   The creation time equals to a date object containing the current time
+	 * 		   | creationTime == new Date()
+	 * @throws NotWritableException [must]
 	 * 		   The user has no rights to change the name of the file
 	 * 		   | !isWritable()
-	 * @see p.44-45
+	 * @see 3.3 Throwing exceptions
+	 * @see 1.1.3.3 Post conditions
 	 */
-	public void setName(String name) throws NotWritableException {
-		setName(name, false);
+	
+	/**
+	 * Checks whether the file size is valid.
+	 * 
+	 * @param    size The size to check
+	 * @return   True if and only if the file size is less than or equal to the max file size and the size is more than or equal to 0.
+	 *           | result = size <= getMaxFileSize()
+	 */
+	public static boolean isValidSize(int size)
+	{
+		return size <= getMaxFileSize() && size >= 0;
 	}
 	/**
-	 * The content reveals the size of this file
-	 * @return the content of this file
+	 * The size reveals the size of this file
+	 * 
+	 * @return the size of this file
 	 */
 	@Basic
-	public int getContent() {
-		return content;
+	public int getSize() {
+		return size;
 	}
 	/**
-	 * Set the content of this file to the given content
-	 * @param  content 
-	 * 		   The new content for this file
-	 * @post   If the file is writable, the new content of this file is equal to the given content
-	 * 		   | if(isWritable)
-	 * 				new.getContent == content
+	 * Set the size of this file to the given size
+	 * 
+	 * @param  size 
+	 * 		   The new size for this file
+	 * @pre    For this file the size must be a valid size
+	 * @post   If the file is writable, the new size of this file is equal to the given size
+	 * 		   | if(isWritable) then
+	 * 				new.getSize == size
+	 * @post   If the size was already initialized, the modification time will be set to the current time.
+	 *         | if(this.getCreationTime() != null) then setCurrentModificationTime()
 	 * @throws NotWritableException
-	 * 		   The user has no rights to change the content of the file
+	 * 		   The user has no rights to change the size of the file
 	 * 		   | !isWritable()
 	 */
-	public void setContent(int content) throws NotWritableException {
+	public void setSize(int size) throws NotWritableException {
 		if(isWritable()){
-			this.content = content;
+			this.size = size;
+			if(this.getCreationTime() != null)
+			{
+				this.setCurrentModificationTime();
+			}
 		}else{
-			throw new NotWritableException("You have no rights to change the content of the file.");
+			throw new NotWritableException("You have no rights to change the size of the file.");
 		}
 		
 	}
-	
+	/**
+	 * @pre The size to add must be less than the current size subtracted from the max file size. | sizeToAdd <= getMaxFileSize() - getSize()
+	 * @effect Sets the size equal to the current size added with the given size to add. 
+	 *         | setSize(getSize() + sizeToAdd)
+	 * @param sizeToAdd Size to add to the current size
+	 */
+	public void enlarge(int sizeToAdd) throws NotWritableException
+	{
+		setSize(getSize() + sizeToAdd);
+	}
+	/**
+	 * @pre The size to shorten must be more than the current size subtracted from the max file size. | sizeToShorten >= getMaxFileSize() - getSize()
+	 * @effect Sets the size equal to the current size added with the given size to short. 
+	 *         | setSize(getSize() - sizeToShorten)
+	 * @param sizeToAdd Size to add to the current size
+	 */
+	public void shorten(int sizeToShorten) throws NotWritableException
+	{
+		setSize(getSize() - sizeToShorten);
+	}
 	private final Date creationTime;
 	/**
 	 * The creation time reveals the time when the file was created
+	 * 
 	 * @return the creationTime of this file
 	 */
 	@Basic @Immutable
@@ -152,6 +186,7 @@ public class File {
 	
 	/**
 	 * The time of last modification reveals when this file was modified for the last time
+	 * 
 	 * @return the lastModificationTime of this file
 	 */
 	@Basic
@@ -196,12 +231,12 @@ public class File {
 	public boolean hasOverlappingUsePeriod(File other){
 		if(other != null && this.lastModificationTime != null && other.lastModificationTime != null){
 			//( start1 <= end2 and start2 <= end1 )
-			return (creationTime.before(other.lastModificationTime)&& other.creationTime.before(lastModificationTime));
+			return (creationTime.before(other.lastModificationTime) && other.creationTime.before(lastModificationTime));
 			
 		}
 		return false;
 	}
-	private boolean writable;
+	private boolean writable = true;
 	/**
 	 * Check whether this file is writable
 	 * 
@@ -227,8 +262,10 @@ public class File {
 	private static final int MAX_FILE_SIZE = Integer.MAX_VALUE;
 	
 	/**
-	 * The maximum file size expresses the biggest possible value for the size of any files 
+	 * The maximum file size expresses the biggest possible value for the size of any files
+	 * 
 	 * @return the maximum file size for all the files
+	 * @see p.14 Immutable
 	 */
 	@Basic @Immutable
 	public static int getMaxFileSize() {
