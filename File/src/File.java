@@ -9,10 +9,11 @@
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
+import be.kuleuven.cs.som.annotate.Model;
 
 /**
- * @invar Content The content must be a valid content for this file 
- * 		  | isValid(content)
+ * @invar The size must be a valid content for this file 
+ * 		  | canHaveAsSize(size)
  * @invar The extension of the file must be a valid extension for this file
  * 		  | canHaveAsExtension(ext)
  */
@@ -34,10 +35,9 @@ public class File extends DiskItem {
 	 * @effect The content of this file is set to the given size
 	 * 		   | setSize(size)
 	 *
-	 * @see    3.3 Throwing exceptions
 	 * @see    1.1.3.3 Post conditions
 	 */
-	public File(String name, int size, boolean writable, Enum type){
+	public File(String name, int size, boolean writable, FileType type){
 		super(name, writable);
 		setSize(size);
 	}
@@ -53,13 +53,26 @@ public class File extends DiskItem {
 	 * 		   | this(name,0,true, type)
 	 */
 	 
-	public File(String name, Enum type)
+	public File(String name, FileType type)
 	{
 		this(name,0,true, type);
 		
 	}
 	private int size;
-
+	
+	/**
+	 * Checks whether the file size is valid.
+	 * 
+	 * @param    size The size to check
+	 * @return   True if and only if the file size is less than or equal to the max file size 
+	 * 			 and the size is more than or equal to 0.
+	 *           | result == size <= getMaxFileSize()
+	 */
+	public static boolean canHaveAsSize(int size)
+	{
+		return size <= getMaxFileSize() && size >= 0;
+	}
+	
 	/**
 	 * The size reveals how big this file is
 	 * 
@@ -85,7 +98,8 @@ public class File extends DiskItem {
 	 * 		   The user has no rights to change the size of the file
 	 * 		   | !isWritable()
 	 */
-	public void setSize(int size) throws NotWritableException {
+	@Model
+	private  void setSize(int size) throws NotWritableException {
 		if(isWritable()){
 			this.size = size;
 			if(this.getCreationTime() != null)
@@ -98,20 +112,28 @@ public class File extends DiskItem {
 
 	}
 	/**
-	 * @pre The size to add must be less than the current size subtracted from the max file size. | sizeToAdd <= getMaxFileSize() - getSize()
-	 * @effect Sets the size equal to the current size added with the given size to add. 
-	 *         | setSize(getSize() + sizeToAdd)
-	 * @param sizeToAdd Size to add to the current size
+	 * Enlarge this file with the given value
+	 *
+	 * @param   sizeToAdd 
+	 * 			Size to add to the current size
+	 * @pre 	The size to add must be less than the current size subtracted from the max file size. 
+	 * 			| sizeToAdd <= getMaxFileSize() - getSize()
+	 * @effect  Sets the size equal to the current size added with the given size to add. 
+	 *          | setSize(getSize() + sizeToAdd)
 	 */
 	public void enlarge(int sizeToAdd) throws NotWritableException
 	{
 		setSize(getSize() + sizeToAdd);
 	}
 	/**
-	 * @pre The size to shorten must be more than the current size subtracted from the max file size. | sizeToShorten >= getMaxFileSize() - getSize()
-	 * @effect Sets the size equal to the current size added with the given size to short. 
-	 *         | setSize(getSize() - sizeToShorten)
-	 * @param sizeToAdd Size to add to the current size
+	 * Shorten this file with the given value
+	 * 
+	 * @pre 	The size to shorten must be more than the current size subtracted from the max file size. 
+	 * 			| sizeToShorten >= getMaxFileSize() - getSize()
+	 * @effect  Sets the size equal to the current size added with the given size to short. 
+	 *          | setSize(getSize() - sizeToShorten)
+	 * @param   sizeToShorten
+	 * 			Size to add to the current size
 	 */
 	public void shorten(int sizeToShorten) throws NotWritableException
 	{
@@ -129,6 +151,25 @@ public class File extends DiskItem {
 	@Basic @Immutable
 	public static int getMaxFileSize() {
 		return MAX_FILE_SIZE;
+	}
+	
+	private FileType type;
+	
+	/**
+	 * Return the type of this file
+	 */
+	public FileType getType(){
+		return type;
+	}
+	/**
+	 * Set the type of this file to the given type
+	 * @param type
+	 * 		  The type to set
+	 * @post  The new type of this file equals the given type
+	 * 		  | new.getType() == type
+	 */
+	public void setType(FileType type){
+		this.type = type; 
 	}
 
 }

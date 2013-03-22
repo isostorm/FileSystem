@@ -19,8 +19,8 @@ public abstract class DiskItem {
 	 * @param  writable
 	 * 		   The writable state of this new file
 	 * @effect The name of this new file is set to the given name
-	 * 		   | setName(name, true)
-	 * @effect The writable state of this new file is set to the given flag with the initial parameter as true
+	 * 		   | setName(name)
+	 * @effect The writable state of this new disk item is set to the given flag
 	 * 	       | setWritable(writable)
 	 * @post   The creation time equals to a date object containing the current time
 	 * 		   | creationTime == new Date()
@@ -31,6 +31,20 @@ public abstract class DiskItem {
 		setName(name);
 		setWritable(writable);
 		creationTime = new Date();
+	}
+	
+	/**
+	 * Initialize a new disk item with a given name
+	 * 
+	 * @effect A new disk item is initialized with the given name as its name
+	 * 		   and true as its writable state
+	 * 		   | this(name, true)
+	 * 
+	 */
+	public DiskItem(String name)
+	{
+		
+		this(name, true);
 	}
 		
 	/**
@@ -171,5 +185,27 @@ public abstract class DiskItem {
 		this.writable = writable;
 	}
 	
+	private Directory directory;
+	
+	/**
+	 * Set the parent directory of this disk item
+	 * 
+	 * @param dir
+	 * 		  The parent directory that must contain this disk item
+	 * @post  The directory of this disk item equals the given directory,
+	 * 		  if the given directory is not effective, 
+	 * 		  this disk item is considered a root item.
+	 * 		  | new.getDirectory() == dir
+	 */
+	public void setDirectory(Directory dir){
+		directory = dir;
+	}
+	/**
+	 * Return the parent directory of this disk item
+	 * 
+	 */
+	public Directory getDirectory(){
+		return directory;
+	}
 		
 }
