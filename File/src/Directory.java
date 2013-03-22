@@ -54,5 +54,28 @@ public class Directory extends DiskItem{
 		return subItems.get(index-1);
 	}
 	
-	
+	/**
+	 * Check whether this directory contains the given disk item
+	 * 
+	 * @param  item
+	 * 		   The item to check for, it is in this directory
+	 * @pre    The given item must be effective
+	 * 		   | item != null
+	 * @return True if and only if this directory contains the given disk item
+	 * 		   | result == subItems.contains(item)
+	 */
+	public boolean hasAsItem(DiskItem item){
+		return subItems.contains(item);
+		
+	}
+	/**
+	 * Returns the index of the given diskItem in this 
+	 * 
+	 * @param  item
+	 * 		   The disk item to get the index of
+	 * @return The index of the given disk
+	 */
+	public int getIndexOf(DiskItem item){
+		return subItems.indexOf(item)+1;
+	}
 }
