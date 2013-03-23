@@ -206,7 +206,10 @@ public abstract class DiskItem {
 		directory = dir;
 	}
 	/**
-	 * Return the parent directory of this disk item
+	 * Returns the parent directory of this disk item
+	 * 
+	 * @result The parent directory of this disk item.
+	 *         | result == directory
 	 * 
 	 */
 	@Raw @Basic
@@ -242,7 +245,7 @@ public abstract class DiskItem {
 	 */
 	public void makeRoot()
 	{
-		setDirectory(null);
+		move(null);
 	}
 	/**
 	 * Checks if this disk items name precedes the other disk items name (non-case sensitive) lexicographically.
@@ -250,9 +253,9 @@ public abstract class DiskItem {
 	 * @param otherItem The other disk item to check against.
 	 * @return True if the name of this item precedes the other disk items name lexicographically.
 	 *         | if getName().compareToIgnoreCase(otherName) < 0 and otherItem != null then
-	 *         |    result == True
+	 *         |    result == true
 	 *         | else
-	 *         |    result == False
+	 *         |    result == false
 	 * 
 	 */
 	protected boolean precedes(String otherName)
@@ -260,14 +263,34 @@ public abstract class DiskItem {
 		String thisName = getName();
 		return otherName != null && (thisName.compareToIgnoreCase(otherName) < 0);
 	}
-
+	/**
+	 * Checks whether this disk item can be moved to the given target directory.
+	 * 
+	 * @param target The target directory to check against.
+	 * @return True if the target exists
+	 *         and the target doesn't already have a sub item with the same (case insensitive) name
+	 *         and this disk item and the target are both not terminated
+	 *         | result == (target != null && !target.exists(getName()) && !isTerminated() && !target.isTerminated())
+	 */
 	public boolean canMoveTo(Directory target)
 	{
-		if(target == null && target.exists(getName()) && !isTerminated() && !target.isTerminated())
+		
+		if(isTerminated())
 		{
 			return false;
 		}
-		return true;
+		if(target == null)
+		{
+			return true;
+		}
+		else if (!target.exists(getName()) && !target.isTerminated())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	/**
 	 * If this disk item can be moved to the target directory, the disk item will be moved to the target directory
@@ -275,38 +298,62 @@ public abstract class DiskItem {
 	 * @param target The target directory.
 	 * @post The parent directory of this disk item is the target directory and the target directory contains this disk item.
 	 *       | target.hasAsItem(this) and getDirectory() == target
+	 * @throws InvalidParentException
+	 *         If this disk item can't be moved to the target directory.
+	 *         | not canMoveTo(target)
 	 */
-	public void move(Directory target)
+	public void move(Directory target) throws InvalidParentException
 	{
 		if(!canMoveTo(target))
 		{
-			// throw
+			throw new InvalidParentException(target, this);
 		}
 		else
 		{
-			target.addItem(this);
+			if(getDirectory() != null)
+			{
+				getDirectory().removeItem(this);
+			}
+			if(target != null)
+			{
+				target.addItem(this);
+			}
 			setDirectory(target);
 		}
 	}
 	private boolean isTerminated;
 	/**
+	 * Checks whether this disk item is terminated or not.
 	 * 
-	 * @return
+	 * @return Whether this disk item is terminated or not.
+	 *         | result == isTerminated
 	 */
+	@Basic
 	public boolean isTerminated()
 	{
 		return this.isTerminated;
 	}
 	/**
+	 * Terminates this disk item and breaks the relation with its parent directory.
+	 * 
+	 * @Post Sets the terminated state of this disk item to true.
+	 *       | isTerminated() == true
+	 * @Effect If this disk item had a parent directory, this disk items parent directory will be set to null.
+	 *       | if(getDirectory() != null) then
+	 *       |    setDirectory(null)
+	 * @Effect If this disk item had a parent directory,
+	 *         this disk item will be removed from the sub items the parent directory has.
+	 *       | if(getDirectory() != null) then
+	 *       |    getDirectory().removeItem(this)
 	 * 
 	 */
 	public void terminate()
 	{
-		isTerminated = true;
-		if(getDirectory() != null)
+		if(getNBOfItems() != 0)
 		{
-			getDirectory().removeItem(this);
-			setDirectory(null);
+			{{  }}
 		}
+		isTerminated = true;
+		makeRoot();
 	}
 }

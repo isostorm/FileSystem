@@ -39,7 +39,7 @@ public class File extends DiskItem {
 	 * 		   | setSize(size)
 	 * @effect The file type is set to the given type
 	 *         | setType(type)
-	 * @effect Moves this file to the given directory
+	 * @effect If the directory exists the directory is moved to the given directory.
 	 *         | move(dir)
 	 * @see    1.1.3.3 Post conditions
 	 */

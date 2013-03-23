@@ -1,7 +1,7 @@
 /*
  * A class for signaling that a disk item can't belong to a certain parent  
  */
-public class invalidParentException extends RuntimeException {
+public class InvalidParentException extends RuntimeException {
 	
 	
 	private static final long serialVersionUID = 1L;
@@ -16,7 +16,7 @@ public class invalidParentException extends RuntimeException {
 	 * @post  This child equals the given child
 	 * 		  | new.getChild() == child
 	 */
-	public invalidParentException(Directory parent, DiskItem child){
+	public InvalidParentException(Directory parent, DiskItem child){
 		this.parent = parent;
 		this.child = child;
 	}
