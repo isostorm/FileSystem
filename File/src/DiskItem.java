@@ -274,13 +274,16 @@ public abstract class DiskItem {
 	 */
 	public boolean canMoveTo(Directory target)
 	{
-		
+		System.out.println("a");
 		if(isTerminated())
 		{
+			
+			System.out.println("Is terminated");
 			return false;
 		}
 		if(target == null)
 		{
+			System.out.println("target == null");
 			return true;
 		}
 		else if (!target.exists(getName()) && !target.isTerminated())
@@ -304,7 +307,7 @@ public abstract class DiskItem {
 	 */
 	public void move(Directory target) throws InvalidParentException
 	{
-		if(!canMoveTo(target))
+		if(canMoveTo(target) == false)
 		{
 			throw new InvalidParentException(target, this);
 		}

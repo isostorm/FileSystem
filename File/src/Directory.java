@@ -157,11 +157,10 @@ public class Directory extends DiskItem{
 	@Model
 	private DiskItem getItem(String name, ArrayList<DiskItem> subItems, int leftIndex, int rightIndex)
 	{
-		System.out.println("Left:" + leftIndex + " Right:" + rightIndex);
 		int middleIndex = (leftIndex + rightIndex)/2;
 		DiskItem middleItem = subItems.get(middleIndex);
 		String middleItemName = middleItem.getName();
-		
+		System.out.println("Left:" + leftIndex + " Right:" + rightIndex);
 		if(leftIndex > rightIndex)
 		{
 			return null;
