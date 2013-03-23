@@ -4,6 +4,7 @@ import be.kuleuven.cs.som.annotate.*;
 
 public class Directory extends DiskItem{
 	
+	
 	/**
 	 * Initializes a new directory with the given name and writable state
 	 * 
@@ -11,12 +12,32 @@ public class Directory extends DiskItem{
 	 * 		   The name of the directory
 	 * @param  writable
 	 * 		   The writable state of the directory
+	 * @post   Sub items equals a new empty arraylist is initialized
+	 * 		   | new.subItems == new ArrayList<DiskItem>()
+	 * @effect This directory is moved to the given parent directory
+	 * 		   | move(parent)
 	 * @effect Initialize a new disk item with the given name and writable state
 	 * 		   | super(name, writable)
 	 */
-	public Directory(String name, boolean writable){
+	public Directory(Directory parent, String name, boolean writable){
 		super(name, writable);
 		subItems = new ArrayList<DiskItem>();
+		move(parent); 
+	}
+	/**
+	 * Initializes a new directory with the given name and writable state
+	 * 
+	 * @param  name
+	 * 		   The name of the directory
+	 * @param  writable
+	 * 		   The writable state of the directory
+	 * @effect Initialize a new directory with the given name and writable state 
+	 * 		   and null as its parent directory
+	 * 		   | this(null, name, writable)
+	 */
+	public Directory(String name, boolean writable){
+		this(null, name, writable);
+	
 	}
 	
 	/**
@@ -28,9 +49,10 @@ public class Directory extends DiskItem{
 	 * 		   | this(name, true)
 	 */
 	public Directory(String name){
-		super(name, true);
-		subItems = new ArrayList<DiskItem>();
+		this(name, true);
 	}
+	
+	
 	private ArrayList<DiskItem> subItems;
 	/**
 	 * Return the number of sub-items in this directory
@@ -42,6 +64,7 @@ public class Directory extends DiskItem{
 	}
 	/**
 	 * Return  the item at a given index
+	 * 
 	 * @param  index
 	 * 		   The index of the sub item to return
 	 * @Pre    The given index must be positive and may not 
@@ -90,14 +113,48 @@ public class Directory extends DiskItem{
 		subItems.remove(item);
 	}
 	/**
+	 * Get the item with the given name in this directory
 	 * 
-	 * @param name
-	 * @return
+	 * @param  name
+	 * 		   The name of the sub item
+	 * @return The element with the given name in this directory
+	 * 		   |result == getItem(name, subItems, 0, subItems.size()-1)
 	 */
 	public DiskItem getItem(String name)
 	{
 		return getItem(name, subItems, 0, subItems.size()-1);
 	}
+	/**
+	 * A recursive method to get the item with the given name
+	 * 
+	 * @param  name
+	 * 		   The name of the element to search for 
+	 * @param  subItems
+	 * 		   The arrayList to search in
+	 * @param  leftIndex
+	 * 		   The left index to start searching
+	 * @param  rightIndex
+	 * 		   The right index to end searching
+	 * @return If the left index exceeds the right index return null
+	 * 		   | if(leftIndex > rightIndex)
+	 * 				then result == null
+	 * 		   If the name of the middle item of this part of the arraylist 
+	 * 		   equals the given name, return the middle item
+	 * 		   | if(middleItemName.equalsIgnoreCase(name))
+	 * 				then result == middleItemName
+	 * 		   Else if the name of the middle item precedes the given name
+	 * 		   return this method invoked on a part of the arraylist, from the middle element 
+	 * 		   added with one to the right index
+	 * 			| else if (middleItem.precedes(name))
+	 * 				then result == getItem(name, subItems, middleIndex+1, rightIndex)
+	 * 		   Else return this method invoked on a part of the arraylist, from the left index 
+	 * 		   to the middle element subtracted with one
+	 * 			| else if (middleItem.precedes(name))
+	 * 				then result == getItem(name, subItems, leftIndex, middleIndex-1)
+	 * 			
+	 */
+	
+	@Model
 	private DiskItem getItem(String name, ArrayList<DiskItem> subItems, int leftIndex, int rightIndex)
 	{
 		System.out.println("Left:" + leftIndex + " Right:" + rightIndex);
@@ -126,12 +183,21 @@ public class Directory extends DiskItem{
 	/**
 	 * Adds the given item to the sub items.
 	 * 
-	 * @param diskItem The disk item to add to the sub items.
-	 * @post subItems.contains(diskItem)
+	 * @param diskItem 
+	 * 		  The disk item to add to the sub items.
+	 * @post  Each item before the given item precedes the given item
+	 * 		  | for each item[i] in 0..i>subItems.indexOf(diskItem)
+	 * 				item[i].precedes(diskItem) 
+	 * @post  The list of sub items contains the given disk item
+	 * 		  | subItems.contains(diskItem)
 	 */
 	public void addItem(DiskItem diskItem)
 	{
-		subItems.add(diskItem);
+		int i = 0;
+		while(subItems.get(i).precedes(diskItem.getName())){
+			i++;
+		}
+		subItems.add(i, diskItem);
 	}
 
 	/**
