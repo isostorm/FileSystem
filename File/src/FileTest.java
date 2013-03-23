@@ -8,7 +8,7 @@ import org.junit.Test;
 
 
 public class FileTest {
-	private File testFileA, testFileB;
+	/*private File testFileA, testFileB;
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		
@@ -69,6 +69,6 @@ public class FileTest {
 		assertTrue(testFileA.isWritable());
 		testFileB.setWritable(false);
 		assertFalse(testFileB.isWritable());
-	}
+	}*/
 
 }

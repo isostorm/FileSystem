@@ -34,12 +34,15 @@ public class File extends DiskItem {
 	 * 		   | super(name, writable)
 	 * @effect The content of this file is set to the given size
 	 * 		   | setSize(size)
+	 * @effect The file type is set to the given type
+	 *         | setType(type)
 	 *
 	 * @see    1.1.3.3 Post conditions
 	 */
 	public File(String name, int size, boolean writable, FileType type){
 		super(name, writable);
 		setSize(size);
+		setType(type);
 	}
 	/**
 	 * Initializes this new file with a given name and type
@@ -57,6 +60,34 @@ public class File extends DiskItem {
 	{
 		this(name,0,true, type);
 		
+	}
+	/**
+	 * Initialize a new File with a given name, size, writable state and type
+	 * 
+	 * @param  name
+	 * 		   The name for this new file
+	 * @param  size
+	 * 		   The size of this new file
+	 * @param  writable
+	 * 		   The writable state of this file
+	 * @param  type
+	 * 		   The file type of this file
+	 * @param  dir
+	 *         The parent directory of this file.
+	 * @effect A new disk item is initialized with the given name and writable state
+	 * 		   | super(name, writable)
+	 * @effect The content of this file is set to the given size
+	 * 		   | setSize(size)
+	 * @effect The file type is set to the given type
+	 *         | setType(type)
+	 * @effect Moves this file to the given directory
+	 *         | move(dir)
+	 * @see    1.1.3.3 Post conditions
+	 */
+	public File(Directory dir, String name, int size, boolean writable, FileType type)
+	{
+		this(name, size, writable, type);
+		move(dir);
 	}
 	private int size;
 	
