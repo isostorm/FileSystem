@@ -247,7 +247,7 @@ public abstract class DiskItem {
 	 * 
 	 * @param otherItem The other disk item to check against.
 	 * @return True if the name of this item precedes the other disk items name lexicographically.
-	 *         | if getName().compareToIgnoreCase(otherName) < 0 && otherItem != null then
+	 *         | if getName().compareToIgnoreCase(otherName) < 0 and otherItem != null then
 	 *         |    result == True
 	 *         | else
 	 *         |    result == False
