@@ -163,7 +163,7 @@ public abstract class DiskItem {
 		return false;
 	}
 	
-	protected boolean writable;
+	protected boolean writable = true;
 	
 	/**
 	 * Check whether this file is writable
@@ -264,7 +264,7 @@ public abstract class DiskItem {
 
 	public boolean canMoveTo(Directory target)
 	{
-		if(target.exists(getName()) && target != null && !isTerminated() && !target.isTerminated())
+		if(target == null && target.exists(getName()) && !isTerminated() && !target.isTerminated())
 		{
 			return false;
 		}
