@@ -114,7 +114,7 @@ public class Directory extends DiskItem{
 		{
 			return middleItem;
 		}
-		else if (middleItem.precedes(this))
+		else if (middleItem.precedes(name))
 		{
 			return getItem(name, subItems, middleIndex+1, rightIndex);
 		}

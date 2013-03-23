@@ -15,7 +15,8 @@ public class MainTest {
 		FileD.move(D);
 		FileE.move(D);
 		FileF.move(D);
-		System.out.println(D.getItem("C").getName());
+		System.out.println(D.getItem("F").getName());
+		
 		
 	}
 }

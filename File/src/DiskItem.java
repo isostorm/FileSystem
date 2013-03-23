@@ -255,11 +255,10 @@ public abstract class DiskItem {
 	 *         |    result == False
 	 * 
 	 */
-	protected boolean precedes(DiskItem otherItem)
+	protected boolean precedes(String otherName)
 	{
 		String thisName = getName();
-		String otherName = otherItem.getName();
-		return otherItem != null && (thisName.compareToIgnoreCase(otherName) < 0);
+		return otherName != null && (thisName.compareToIgnoreCase(otherName) < 0);
 	}
 
 	public boolean canMoveTo(Directory target)
