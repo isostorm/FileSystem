@@ -172,12 +172,9 @@ public class Directory extends DiskItem{
 		return (getItem(name) != null);
 	}
 
-	@Override
-	public void move(Directory directory) {
-		// TODO Auto-generated method stub
-		
-	}
 	/**
+	 * Checks whether or not this directory can have the given file as a sub file.
+	 * 
 	 * 
 	 */
 	public boolean canHaveAsFile(File file)
