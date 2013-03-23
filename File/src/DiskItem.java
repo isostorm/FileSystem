@@ -125,6 +125,7 @@ public abstract class DiskItem {
 	 * @post  The time of last modification equals the given time
 	 * 		  | new.getLastModificationTime() == lastModificationTime
 	 */
+	@Raw @Basic
 	public void setLastModificationTime(Date lastModificationTime) {
 		this.lastModificationTime = lastModificationTime;
 	}
@@ -134,6 +135,7 @@ public abstract class DiskItem {
 	 * @effect The time of last modification of this file is set to the current time
 	 * 		   | setCurrentModificationTime(currentTime)
 	 */
+	@Raw @Basic
 	public void setCurrentModificationTime(){
 		setLastModificationTime(new Date());
 	}
@@ -168,7 +170,7 @@ public abstract class DiskItem {
 	 * 
 	 * Some methods have no effect when the file is not writable
 	 */
-	@Basic
+	@Basic @Raw
 	public boolean isWritable() {
 		return writable;
 	}
@@ -182,6 +184,7 @@ public abstract class DiskItem {
 	 * 		  | new.isWritable() == writable
 	 *  
 	 */
+	@Raw @Basic
 	public void setWritable(boolean writable) {
 		this.writable = writable;
 	}
@@ -199,7 +202,7 @@ public abstract class DiskItem {
 	 * 		  | new.getDirectory() == dir
 	 */
 	@Raw @Basic
-	public void setDirectory(Directory dir){
+	private void setDirectory(Directory dir){
 		directory = dir;
 	}
 	/**
@@ -241,7 +244,6 @@ public abstract class DiskItem {
 	{
 		setDirectory(null);
 	}
-	public abstract void move(Directory directory);
 	/**
 	 * Checks if this disk items name precedes the other disk items name (non-case sensitive) lexicographically.
 	 * 
@@ -260,4 +262,52 @@ public abstract class DiskItem {
 		return otherItem != null && (thisName.compareToIgnoreCase(otherName) < 0);
 	}
 
+	public boolean canMoveTo(Directory target)
+	{
+		if(target.exists(getName()) && target != null && !isTerminated() && !target.isTerminated())
+		{
+			return false;
+		}
+		return true;
+	}
+	/**
+	 * If this disk item can be moved to the target directory, the disk item will be moved to the target directory
+	 * 
+	 * @param target The target directory.
+	 * @post The parent directory of this disk item is the target directory and the target directory contains this disk item.
+	 *       | target.hasAsItem(this) and getDirectory() == target
+	 */
+	public void move(Directory target)
+	{
+		if(!canMoveTo(target))
+		{
+			// throw
+		}
+		else
+		{
+			target.addItem(this);
+			setDirectory(target);
+		}
+	}
+	private boolean isTerminated;
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isTerminated()
+	{
+		return this.isTerminated;
+	}
+	/**
+	 * 
+	 */
+	public void terminate()
+	{
+		isTerminated = true;
+		if(getDirectory() != null)
+		{
+			getDirectory().removeItem(this);
+			setDirectory(null);
+		}
+	}
 }

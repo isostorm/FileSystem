@@ -1,7 +1,4 @@
 import java.util.ArrayList;
-
-import org.hamcrest.core.IsInstanceOf;
-
 import be.kuleuven.cs.som.annotate.*;
 
 
@@ -19,6 +16,7 @@ public class Directory extends DiskItem{
 	 */
 	public Directory(String name, boolean writable){
 		super(name, writable);
+		subItems = new ArrayList<DiskItem>();
 	}
 	
 	/**
@@ -31,8 +29,8 @@ public class Directory extends DiskItem{
 	 */
 	public Directory(String name){
 		super(name, true);
+		subItems = new ArrayList<DiskItem>();
 	}
-	
 	private ArrayList<DiskItem> subItems;
 	/**
 	 * Return the number of sub-items in this directory
@@ -46,7 +44,7 @@ public class Directory extends DiskItem{
 	 * Return  the item at a given index
 	 * @param  index
 	 * 		   The index of the sub item to return
-	 * @pre    The given index must be positive and may not 
+	 * @Pre    The given index must be positive and may not 
 	 * 		   exceed the number of items this directory contains.
 	 * 		   | index>=0 && index<=getNbItems
 	 * @return The item at the given index
@@ -61,7 +59,7 @@ public class Directory extends DiskItem{
 	 * 
 	 * @param  item
 	 * 		   The item to check for, it is in this directory
-	 * @pre    The given item must be effective
+	 * @Pre    The given item must be effective
 	 * 		   | item != null
 	 * @return True if and only if this directory contains the given disk item
 	 * 		   | result == subItems.contains(item)
@@ -79,6 +77,17 @@ public class Directory extends DiskItem{
 	 */
 	public int getIndexOf(DiskItem item){
 		return subItems.indexOf(item)+1;
+	}
+	/**
+	 * If this directory contains the item, it will be removed.
+	 * 
+	 * @param item The item to remove.
+	 * @effect If the item was in the list of sub item, the given item will be removed.
+	 *         | subItems.remove(item)
+	 */
+	public void removeItem(DiskItem item)
+	{
+		subItems.remove(item);
 	}
 	/**
 	 * 
@@ -114,6 +123,17 @@ public class Directory extends DiskItem{
 		}
 	}
 	/**
+	 * Adds the given item to the sub items.
+	 * 
+	 * @param diskItem The disk item to add to the sub items.
+	 * @post subItems.contains(diskItem)
+	 */
+	public void addItem(DiskItem diskItem)
+	{
+		subItems.add(diskItem);
+	}
+
+	/**
 	 * Checks whether this directory is a direct or indirect sub directory of a directory.
 	 * 
 	 * @param directory
@@ -139,4 +159,37 @@ public class Directory extends DiskItem{
 			return getDirectory().isDirectOrIndirectSubdirectoryOfRecursive(directory);
 		}
 	}
+	/**
+	 * Checks if a disk item with the given name exists (case insensitive) inside this directory.
+	 * 
+	 * @param name The name of the disk item to check.
+	 * @return True if there is an item with the given name (case insensitive).
+	 *         | result == (getItem(name) != null)
+	 */
+	public boolean exists(String name)
+	{
+		return (getItem(name) != null);
+	}
+
+	@Override
+	public void move(Directory directory) {
+		// TODO Auto-generated method stub
+		
+	}
+	/**
+	 * 
+	 */
+	public boolean canHaveAsFile(File file)
+	{
+		return file != null && !exists(file.getName());
+	}
+
+	/**
+	 * 
+	 */
+	public boolean canMoveTo(Directory target)
+	{
+		return super.canMoveTo(target) && target != this && isDirectOrIndirectSubdirectoryOf(target) && target.isDirectOrIndirectSubdirectoryOf(this);
+	}
+		
 }
