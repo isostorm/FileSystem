@@ -19,50 +19,9 @@ import be.kuleuven.cs.som.annotate.Model;
  */
 public class File extends DiskItem {
 	
+	
 	/**
-	 * Initialize a new File with a given name, size, writable state and type
-	 * 
-	 * @param  name
-	 * 		   The name for this new file
-	 * @param  size
-	 * 		   The size of this new file
-	 * @param  writable
-	 * 		   The writable state of this file
-	 * @param  type
-	 * 		   The file type of this file
-	 * @effect A new disk item is initialized with the given name and writable state
-	 * 		   | super(name, writable)
-	 * @effect The content of this file is set to the given size
-	 * 		   | setSize(size)
-	 * @effect The file type is set to the given type
-	 *         | setType(type)
-	 *
-	 * @see    1.1.3.3 Post conditions
-	 */
-	public File(String name, int size, boolean writable, FileType type){
-		super(name, writable);
-		setSize(size);
-		setType(type);
-	}
-	/**
-	 * Initializes this new file with a given name and type
-	 * 
-	 * @param  name
-	 * 		   The name for this new file
-	 * @param  type
-	 * 		   The file type of this file
-	 * @effect The new file is initialized with the given name as its name,
-	 * 	 	   0 as its size and true as its writable state and the given type as its type
-	 * 		   | this(name,0,true, type)
-	 */
-	 
-	public File(String name, FileType type)
-	{
-		this(name,0,true, type);
-		
-	}
-	/**
-	 * Initialize a new File with a given name, size, writable state and type
+	 * Initialize a new File with a given name, size, writable state, directory and type
 	 * 
 	 * @param  name
 	 * 		   The name for this new file
@@ -86,9 +45,49 @@ public class File extends DiskItem {
 	 */
 	public File(Directory dir, String name, int size, boolean writable, FileType type)
 	{
-		this(name, size, writable, type);
+		
+		super(name, writable);
+		setSize(size);
+		setType(type);
 		move(dir);
 	}
+	/**
+	 * Initialize a new File with a given name, size, writable state and type
+	 * 
+	 * @param  name
+	 * 		   The name for this new file
+	 * @param  size
+	 * 		   The size of this new file
+	 * @param  writable
+	 * 		   The writable state of this file
+	 * @param  type
+	 * 		   The file type of this file
+	 * @effect A new file is initialized with null as its parent directory 
+	 * 		   the given name, file type and writable state
+	 * 		   | this(null,name, writable,type)
+	 * @see    1.1.3.3 Post conditions
+	 */
+	public File(String name, int size, boolean writable, FileType type){
+		this(null, name, size, writable, type);
+	}
+	/**
+	 * Initializes this new file with a given name and type
+	 * 
+	 * @param  name
+	 * 		   The name for this new file
+	 * @param  type
+	 * 		   The file type of this file
+	 * @effect The new file is initialized with the given name as its name,
+	 * 	 	   0 as its size and true as its writable state and the given type as its type
+	 * 		   | this(name,0,true, type)
+	 */
+	 
+	public File(String name, FileType type)
+	{
+		this(name,0,true, type);
+		
+	}
+	
 	private int size;
 	
 	/**
