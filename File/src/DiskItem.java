@@ -208,8 +208,40 @@ public abstract class DiskItem {
 	 */
 	@Raw @Basic
 	public Directory getDirectory(){
-		return directory;
+			return directory;
 	}
+	/**
+	 * Returns the root disk item of this disk item.
+	 * 
+	 * @return The root disk item of this disk item.
+	 *         If this disk items has no parent directory, this disk item is returned.
+	 *         Otherwise the root of the parent directory is returned.
+	 *         | if(getDirectory() == null) then
+	 *         |    result == this
+	 *         | else
+	 *         |    result == getDirectory().getRoot()
+	 */
+	public DiskItem getRoot()
+	{
+		if(getDirectory() == null)
+		{
+			return this;
+		}
+		else
+		{
+			return getDirectory().getRoot();
+		}
+	}
+	/**
+	 * Changes this disk item into a root disk item.
+	 * @effect The parent directory is set to null.
+	 *         | setDirectory(null)
+	 */
+	public void makeRoot()
+	{
+		setDirectory(null);
+	}
+	public abstract void move(Directory directory);
 	/**
 	 * Checks if this disk items name precedes the other disk items name (non-case sensitive) lexicographically.
 	 * 

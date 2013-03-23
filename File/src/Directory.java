@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 
+import org.hamcrest.core.IsInstanceOf;
+
 import be.kuleuven.cs.som.annotate.*;
 
 
@@ -109,6 +111,32 @@ public class Directory extends DiskItem{
 		else
 		{
 			return getItem(name, subItems, leftIndex, middleIndex-1);
+		}
+	}
+	/**
+	 * Checks whether this directory is a direct or indirect sub directory of a directory.
+	 * 
+	 * @param directory
+	 * @return True if this directory is a direct or indirect sub directory of the given directory.
+	 * MOET GEFIXED WORDEN
+	 */
+	public boolean isDirectOrIndirectSubdirectoryOf(Directory directory)
+	{
+		return isDirectOrIndirectSubdirectoryOfRecursive(directory);
+	}
+	protected boolean isDirectOrIndirectSubdirectoryOfRecursive(Directory directory)
+	{
+		if(getDirectory() == null)
+		{
+			return false;
+		}
+		else if (getDirectory() == directory)
+		{
+			return true;
+		}
+		else
+		{
+			return getDirectory().isDirectOrIndirectSubdirectoryOfRecursive(directory);
 		}
 	}
 }
