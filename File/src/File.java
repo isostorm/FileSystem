@@ -71,7 +71,7 @@ public class File extends DiskItem {
 		this(null, name, size, writable, type);
 	}
 	/**
-	 * Initializes this new file with a given name and type
+	 * Initializes this new file with a given name and type 
 	 * 
 	 * @param  name
 	 * 		   The name for this new file
