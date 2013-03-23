@@ -349,10 +349,6 @@ public abstract class DiskItem {
 	 */
 	public void terminate()
 	{
-		if(getNBOfItems() != 0)
-		{
-			{{  }}
-		}
 		isTerminated = true;
 		makeRoot();
 	}
