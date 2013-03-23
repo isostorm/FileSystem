@@ -10,6 +10,7 @@ import java.util.Date;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
+import be.kuleuven.cs.som.annotate.Raw;
 
 public abstract class DiskItem {
 	
@@ -197,6 +198,7 @@ public abstract class DiskItem {
 	 * 		  this disk item is considered a root item.
 	 * 		  | new.getDirectory() == dir
 	 */
+	@Raw @Basic
 	public void setDirectory(Directory dir){
 		directory = dir;
 	}
@@ -204,8 +206,26 @@ public abstract class DiskItem {
 	 * Return the parent directory of this disk item
 	 * 
 	 */
+	@Raw @Basic
 	public Directory getDirectory(){
 		return directory;
 	}
-		
+	/**
+	 * Checks if this disk items name precedes the other disk items name (non-case sensitive) lexicographically.
+	 * 
+	 * @param otherItem The other disk item to check against.
+	 * @return True if the name of this item precedes the other disk items name lexicographically.
+	 *         | if getName().compareToIgnoreCase(otherName) < 0 && otherItem != null then
+	 *         |    result == True
+	 *         | else
+	 *         |    result == False
+	 * 
+	 */
+	protected boolean precedes(DiskItem otherItem)
+	{
+		String thisName = getName();
+		String otherName = otherItem.getName();
+		return otherItem != null && (thisName.compareToIgnoreCase(otherName) < 0);
+	}
+
 }

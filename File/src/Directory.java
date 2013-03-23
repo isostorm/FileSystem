@@ -78,4 +78,37 @@ public class Directory extends DiskItem{
 	public int getIndexOf(DiskItem item){
 		return subItems.indexOf(item)+1;
 	}
+	/**
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public DiskItem getItem(String name)
+	{
+		return getItem(name, subItems, 0, subItems.size()-1);
+	}
+	private DiskItem getItem(String name, ArrayList<DiskItem> subItems, int leftIndex, int rightIndex)
+	{
+		int middleIndex = (leftIndex + rightIndex)/2;
+		DiskItem middleItem = subItems.get(middleIndex);
+		String middleItemName = middleItem.getName();
+		System.out.println("Left:" + leftIndex + " Right:" + rightIndex);
+		if(leftIndex > rightIndex)
+		{
+			return null;
+		}
+		
+		if(middleItemName.equalsIgnoreCase(name))
+		{
+			return middleItem;
+		}
+		else if (middleItem.precedes(this))
+		{
+			return getItem(name, subItems, middleIndex+1, rightIndex);
+		}
+		else
+		{
+			return getItem(name, subItems, leftIndex, middleIndex-1);
+		}
+	}
 }

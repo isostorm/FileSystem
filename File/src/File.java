@@ -12,9 +12,9 @@ import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Model;
 
 /**
- * @invar The size must be a valid content for this file 
+ * @Invar The size must be a valid content for this file 
  * 		  | canHaveAsSize(size)
- * @invar The extension of the file must be a valid extension for this file
+ * @Invar The extension of the file must be a valid extension for this file
  * 		  | canHaveAsExtension(ext)
  */
 public class File extends DiskItem {
@@ -66,7 +66,7 @@ public class File extends DiskItem {
 	 * @param    size The size to check
 	 * @return   True if and only if the file size is less than or equal to the max file size 
 	 * 			 and the size is more than or equal to 0.
-	 *           | result == size <= getMaxFileSize()
+	 *           | result == (size <= getMaxFileSize())
 	 */
 	public static boolean canHaveAsSize(int size)
 	{
@@ -88,7 +88,7 @@ public class File extends DiskItem {
 	 * 
 	 * @param  size 
 	 * 		   The new size for this file
-	 * @pre    For this file the size must be a valid size
+	 * @Pre    For this file the size must be a valid size
 	 * @post   If the file is writable, the new size of this file is equal to the given size
 	 * 		   | if(isWritable) then
 	 * 				new.getSize == size
@@ -99,7 +99,7 @@ public class File extends DiskItem {
 	 * 		   | !isWritable()
 	 */
 	@Model
-	private  void setSize(int size) throws NotWritableException {
+	private void setSize(int size) throws NotWritableException {
 		if(isWritable()){
 			this.size = size;
 			if(this.getCreationTime() != null)
@@ -116,7 +116,7 @@ public class File extends DiskItem {
 	 *
 	 * @param   sizeToAdd 
 	 * 			Size to add to the current size
-	 * @pre 	The size to add must be less than the current size subtracted from the max file size. 
+	 * @Pre 	The size to add must be less than the current size subtracted from the max file size. 
 	 * 			| sizeToAdd <= getMaxFileSize() - getSize()
 	 * @effect  Sets the size equal to the current size added with the given size to add. 
 	 *          | setSize(getSize() + sizeToAdd)
@@ -128,7 +128,7 @@ public class File extends DiskItem {
 	/**
 	 * Shorten this file with the given value
 	 * 
-	 * @pre 	The size to shorten must be more than the current size subtracted from the max file size. 
+	 * @Pre 	The size to shorten must be more than the current size subtracted from the max file size. 
 	 * 			| sizeToShorten >= getMaxFileSize() - getSize()
 	 * @effect  Sets the size equal to the current size added with the given size to short. 
 	 *          | setSize(getSize() - sizeToShorten)
