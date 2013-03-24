@@ -294,7 +294,7 @@ public class Directory extends DiskItem{
 		{
 			return true;
 		}
-		return super.canMoveTo(target) && target != this && isDirectOrIndirectSubdirectoryOf(target);
+		return super.canMoveTo(target) && target != this && !target.isDirectOrIndirectSubdirectoryOf(this);
 	}
 		
 }
