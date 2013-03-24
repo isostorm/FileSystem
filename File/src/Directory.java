@@ -200,11 +200,14 @@ public class Directory extends DiskItem{
 		{
 			subItems.add(diskItem);
 		}
-		int i = 0;
-		while(i < getNbItems() && subItems.get(i).precedes(diskItem.getName())){
-			i++;
+		else
+		{
+			int i = 0;
+			while(i < getNbItems() && subItems.get(i).precedes(diskItem.getName())){
+				i++;
+			}
+			subItems.add(i, diskItem);
 		}
-		subItems.add(i, diskItem);
 	}
 
 	/**

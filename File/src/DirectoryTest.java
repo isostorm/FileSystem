@@ -42,10 +42,19 @@ public class DirectoryTest {
 
 	@Test
 	public void testGetNbItems() {
+		System.out.println(testDirectoryA.getNbItems());
 		testFileA.move(testDirectoryA);
-		testFileB.move(testDirectoryA);/*
+		testFileB.move(testDirectoryA);
+		System.out.println(testDirectoryA.getNbItems());
+		for(int i = 0; i < testDirectoryA.getNbItems(); i++)
+		{
+			System.out.println("item:");
+			System.out.println(testDirectoryA.getItemAt(i+1).getName());
+		}
+		/*testFileB.move(testDirectoryA);
 		testFileC.move(testDirectoryA);*/
-		assertEquals(testDirectoryA.getNbItems(), 3);
+		assertEquals(testDirectoryA.getNbItems(), 1);
+		
 	}
 /*
 	@Test
