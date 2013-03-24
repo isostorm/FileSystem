@@ -122,6 +122,10 @@ public class Directory extends DiskItem{
 	 */
 	public DiskItem getItem(String name)
 	{
+		if(getNbItems() == 0)
+		{
+			return null;
+		}
 		return getItem(name, subItems, 0, subItems.size()-1);
 	}
 	/**
@@ -192,8 +196,12 @@ public class Directory extends DiskItem{
 	 */
 	public void addItem(DiskItem diskItem)
 	{
+		if(getNbItems() == 0)
+		{
+			subItems.add(diskItem);
+		}
 		int i = 0;
-		while(subItems.get(i).precedes(diskItem.getName())){
+		while(i < getNbItems() && subItems.get(i).precedes(diskItem.getName())){
 			i++;
 		}
 		subItems.add(i, diskItem);
@@ -252,6 +260,10 @@ public class Directory extends DiskItem{
 	 */
 	public boolean canMoveTo(Directory target)
 	{
+		if(target == null && super.canMoveTo(target))
+		{
+			return true;
+		}
 		return super.canMoveTo(target) && target != this && isDirectOrIndirectSubdirectoryOf(target) && target.isDirectOrIndirectSubdirectoryOf(this);
 	}
 		
