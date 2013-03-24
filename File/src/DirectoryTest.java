@@ -207,10 +207,5 @@ public class DirectoryTest {
 		testFileA.terminate();
 		assertTrue(testFileA.isTerminated());
 	}
-/*
-	@Test
-	public void testTerminate() {
-		fail("Not yet implemented");
-	}*/
 
 }
