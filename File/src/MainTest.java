@@ -6,7 +6,7 @@ public class MainTest {
 	{
 		new Directory("ok");
 		File FileB = new File("B",FileType.TXT);
-		File FileC = new File("C",FileType.TXT);
+		File FileC = new File("Q",FileType.TXT);
 		File FileD = new File("D",FileType.TXT);
 		File FileE = new File("E",FileType.TXT);
 		File FileF = new File("F",FileType.TXT);
@@ -16,7 +16,7 @@ public class MainTest {
 		FileD.move(D);
 		FileE.move(D);
 		FileF.move(D);
-		System.out.println(D.getNbItems());
+		System.out.println(D.getItem("F").getName());
 		//System.out.println(D.getItem("F"));;
 		
 		

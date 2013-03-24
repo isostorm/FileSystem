@@ -8,7 +8,7 @@ import org.junit.Test;
 
 
 public class FileTest {
-	/*private File testFileA, testFileB;
+	private File testFileA, testFileB;
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		
@@ -16,18 +16,18 @@ public class FileTest {
 
 	@Before
 	public void setUp() throws Exception {
-		testFileA = new File("FileA");
-		testFileB = new File("FileB");
+		testFileA = new File("FileA", FileType.JAVA);
+		testFileB = new File("FileB", FileType.JAVA);
 	}
 
 	@Test
 	public void testGetName() throws Exception{
-		File testFileIllegalName = new File("!!!");
-		File testFileFullName = new File("Ab_-0");
+		File testFileIllegalName = new File("!!!", FileType.JAVA);
+		File testFileFullName = new File("Ab_-0", FileType.JAVA);
 		assertEquals(testFileA.getName(), "FileA");
 		assertEquals(testFileIllegalName.getName(), "X");
 		assertEquals(testFileFullName.getName(), "Ab_-0");
-		assertEquals(new File("O").getName(), "O");
+		assertEquals(new File("O", FileType.JAVA).getName(), "O");
 	}
 
 	@Test
@@ -38,9 +38,9 @@ public class FileTest {
 
 	@Test
 	public void testIsValidSize() {
-		assertFalse(File.isValidSize(-1));
-		assertTrue(File.isValidSize(Integer.MAX_VALUE));
-		assertTrue(File.isValidSize(300));
+		assertFalse(File.canHaveAsSize(-1));
+		assertTrue(File.canHaveAsSize(Integer.MAX_VALUE));
+		assertTrue(File.canHaveAsSize(300));
 	}
 
 	@Test
@@ -50,17 +50,17 @@ public class FileTest {
 
 	@Test (expected = NotWritableException.class)
 	public void testSetSizeFail() throws Exception {
-		File fileNotWritable = new File("abc", 10, false);
-		File fileWritable = new File("abczezeze", 20, true);
-		fileWritable.setSize(30);
+		File fileNotWritable = new File("abc", 10, false, FileType.JAVA);
+		File fileWritable = new File("abczezeze", 20, true, FileType.JAVA);
+		fileWritable.enlarge(20);
 		assertEquals(fileWritable.getSize(), 30);
-		fileNotWritable.setSize(100);
+		fileNotWritable.enlarge(80);
 		fail("Exception expected");
 	}
 
 	@Test
 	public void testGetCreationTime() throws NotWritableException {
-		assertEquals((new Date()).compareTo((new File("abc")).getCreationTime()), 0);
+		assertEquals((new Date()).compareTo((new File("abc", FileType.TXT)).getCreationTime()), 0);
 	}
 
 	@Test
@@ -69,6 +69,6 @@ public class FileTest {
 		assertTrue(testFileA.isWritable());
 		testFileB.setWritable(false);
 		assertFalse(testFileB.isWritable());
-	}*/
+	}
 
 }
