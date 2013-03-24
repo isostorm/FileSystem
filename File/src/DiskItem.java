@@ -13,7 +13,11 @@ import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Raw;
 
 public abstract class DiskItem {
-	
+	/**
+	 * @invar This name of this disk item must be a valid name
+	 * 			| isValid(name)
+	 * 
+	 */
 	private String name;
 	
 	/**
@@ -61,10 +65,8 @@ public abstract class DiskItem {
 	 * 
 	 * @param name 
 	 * 		  The name to set.
-	 * @post  If the given name contains only alphabetical and numerical characters and dots, 
-	 * 		  hyphens and underscores, and the given name is of at least length 1 
-	 *        and the given name is effective, the new name is equal to the given name.
-	 * 		  | if name.matches("[A-Za-z0-9._-]+")) 
+	 * @post   the new name is equal to the given name.
+	 * 		  | if canHaveAs(name) 
 	 * 				then new.name == name
 	 * @post  If the old name was not set,  the new name will be equal to "X".
 	 * 		  | if(this.name == null)
@@ -82,7 +84,7 @@ public abstract class DiskItem {
 		if(!isWritable())
 			throw new NotWritableException(this);
 
-		if(name.matches("[A-Za-z0-9._-]+")){
+		if(canHaveAsName(name)){
 			this.name = name;
 		}
 
@@ -95,7 +97,17 @@ public abstract class DiskItem {
 		}
 
 	}
-	
+	/**
+	 * Check whether the given the name is valid for this diskitem
+	 * 
+	 * @return True if and only if the given name contains only alphabetical and numerical characters and dots, 
+	 * 		  	hyphens and underscores, and the given name is of at least length 1 
+	 *        	and the given name is effective.
+	 *        	| result == name.matches("[A-Za-z0-9._-]+")) 
+	 */
+	public boolean canHaveAsName(String name){
+		return name.matches("[A-Za-z0-9._-]+");
+	}
 		
 	protected final Date creationTime;
 	/**

@@ -1,9 +1,20 @@
 import java.util.ArrayList;
 import be.kuleuven.cs.som.annotate.*;
 
-
+/**
+ * 
+ * @author Mathias Benoit, Frederic Huysentruyt
+ * @version 1.0
+ *
+ */
 public class Directory extends DiskItem{
-	
+	/**
+	 * @invar Each sub item in this directory must be a valid sub item
+	 * 		  
+	 * @invar Each sub item must have the this directory as parent
+	 * 			| for each item in subItems
+	 * 				item.getDirectory == this
+	 */
 	
 	/**
 	 * Initializes a new directory with the given name and writable state
@@ -270,16 +281,6 @@ public class Directory extends DiskItem{
 	}
 
 	/**
-	 * Checks whether or not this directory can have the given file as a sub file.
-	 * 
-	 * @return 
-	 */
-	public boolean canHaveAsFile(File file)
-	{
-		return file != null && !exists(file.getName());
-	}
-
-	/**
 	 * Checks whether this directory can be moved to the given directory
 	 * 
 	 * @return If the target is null and the super method canMoveTo, invoked on the target
@@ -287,7 +288,11 @@ public class Directory extends DiskItem{
 	 * 			if(target == null && super.canMoveTo(target))
 	 * 				then result == true
 	 * 			else if the super method canMoveTo yields true and this directory 
-	 * 			doesn't equal the given target
+	 * 			doesn't equal the given target and the target directory is not 
+	 * 			an direct or indirect sub directory of this directory
+	 * 			| result == super.canMoveTo(target) 
+	 * 						&& target != this 
+	 * 						&& !target.isDirectOrIndirectSubdirectoryOf(this)
 	 * 			 
 	 */
 	@Override
