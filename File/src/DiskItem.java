@@ -361,7 +361,8 @@ public abstract class DiskItem {
 	 */
 	public void terminate()
 	{
-		isTerminated = true;
 		makeRoot();
+		isTerminated = true;
+		
 	}
 }
