@@ -208,17 +208,37 @@ public class Directory extends DiskItem{
 	}
 
 	/**
-	 * Checks whether this directory is a direct or indirect sub directory of a directory.
+	 * Checks whether this directory is a direct or indirect sub directory of a given directory.
 	 * 
 	 * @param directory
-	 * @return True if this directory is a direct or indirect sub directory of the given directory.
-	 * MOET GEFIXED WORDEN
+	 * 		  The directory to check for whether the given directory is a sub directory
+	 * @return The result of the recursive method isDirectOrIndirectSubdirectoryOfRecursive
+	 * 		   | result == isDirectOrIndirectSubdirectoryOfRecursive(directory)
 	 */
 	public boolean isDirectOrIndirectSubdirectoryOf(Directory directory)
 	{
 		return isDirectOrIndirectSubdirectoryOfRecursive(directory);
 	}
-	protected boolean isDirectOrIndirectSubdirectoryOfRecursive(Directory directory)
+	
+	/**
+	 * A recursive method that checks whether this directory is a 
+	 * direct or indirect sub directory of the given directory
+	 * 
+	 * @param  directory
+	 * 		   The directory to check for whether the given directory is a sub directory
+	 * @return If this directory has no parent directory return false
+	 * 		   | if(getDirectory() == null)
+	 * 				then result == false
+	 * 		   Else if the given directory is the parent directory 
+	 * 		   of this directory, return true.
+	 * 		   | else if (getDirectory() == directory)
+	 * 				then result == true
+	 * 		   Else invoke this method on the parent directory of this directory 
+	 * 		   with the given directory as argument
+	 * 		   | else result == getDirectory().isDirectOrIndirectSubdirectoryOfRecursive(directory)
+	 * 		   
+	 */
+	private boolean isDirectOrIndirectSubdirectoryOfRecursive(Directory directory)
 	{
 		if(getDirectory() == null)
 		{
@@ -238,7 +258,8 @@ public class Directory extends DiskItem{
 	 * 
 	 * @param name The name of the disk item to check.
 	 * @return True if there is an item with the given name (case insensitive).
-	 *         | result == (getItem(name) != null)
+	 *         | result == for some item in subItems
+	 *         					(getItem.getName == name)
 	 */
 	public boolean exists(String name)
 	{
@@ -248,7 +269,7 @@ public class Directory extends DiskItem{
 	/**
 	 * Checks whether or not this directory can have the given file as a sub file.
 	 * 
-	 * 
+	 * @return 
 	 */
 	public boolean canHaveAsFile(File file)
 	{
@@ -256,15 +277,24 @@ public class Directory extends DiskItem{
 	}
 
 	/**
+	 * Checks whether this directory can be moved to the given directory
 	 * 
+	 * @return If the target is null and the super method canMoveTo, invoked on the target
+	 * 			yields true, return true
+	 * 			if(target == null && super.canMoveTo(target))
+	 * 				then result == true
+	 * 			else if the super method canMoveTo yields true and this directory 
+	 * 			doesn't equal the given target
+	 * 			 
 	 */
+	@Override
 	public boolean canMoveTo(Directory target)
 	{
 		if(target == null && super.canMoveTo(target))
 		{
 			return true;
 		}
-		return super.canMoveTo(target) && target != this && isDirectOrIndirectSubdirectoryOf(target) && target.isDirectOrIndirectSubdirectoryOf(this);
+		return super.canMoveTo(target) && target != this && isDirectOrIndirectSubdirectoryOf(target);
 	}
 		
 }
