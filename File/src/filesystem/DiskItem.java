@@ -1,369 +1,965 @@
 package filesystem;
-/**
- * A class of items on the hard disk involving a name, a content, a writable state, a creation time, 
- * a time of last modification, a maximum file size and a writable state
- * 
- * 
- * @author Frederic Huysentruyt, Mathias Benoit
- * @version 1.0
- */
+
 import java.util.Date;
 
-import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Immutable;
+import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
 
+import filesystem.exception.*;
+
+/**
+ * A class of disk items.
+ * 
+ * @invar	Each disk item must have a properly spelled name.
+ * 			| hasValidName()
+ * @invar	Each disk item must have a proper creation time.
+ *        	| hasValidCreationTime()
+ * @invar   	Each disk item must have a proper modification time.
+ *          	| hasValidModificationTime()
+ * @invar   	Each disk item must have a proper parent directory.
+ *          	| hasValidParentDirectory()
+ */
 public abstract class DiskItem {
+
+	/**********************************************************
+	* Constructors
+	**********************************************************/
+	    
 	/**
-	 * @invar This name of this disk item must be a valid name
-	 * 			| isValid(name)
+	 * Initialize a new root disk item with given name and writability.
 	 * 
-	 */
-	private String name;
-	
-	/**
+	 * @param  name
+	 *         The name of the new disk item.
 	 * @param  writable
-	 * 		   The writable state of this new file
-	 * @effect The name of this new file is set to the given name
-	 * 		   | setName(name)
-	 * @effect The writable state of this new disk item is set to the given flag
-	 * 	       | setWritable(writable)
-	 * @post   The creation time equals to a date object containing the current time
-	 * 		   | creationTime == new Date()
+	 *         The writability of the new disk item.
+	 * @post   The new disk item is a root disk item.
+	 *         | new.isRoot()
+	 * @effect The new disk item has the given name (if legal) or a
+	 *         legal name.
+	 *         | setName(name) 
+	 * @effect The new disk item has the given writability.
+	 *         | setWritability(writable)
+	 * @post   The creation time is initialized to some time during 
+	 *         constructor execution.
+	 *         | (new.getCreationTime().getTime() >= 
+	 *         |             System.currentTimeMillis()) &&
+	 *         | (new.getCreationTime().getTime() <=
+	 *         |             (new System).currentTimeMillis())
+	 * @post   The new file has no time of last modification.
+	 *         | new.getModificationTime() == null     
 	 */
-	public DiskItem(String name, boolean writable)
-	{
-		
+	@Model protected DiskItem(String name, boolean writable) {
 		setName(name);
-		setWritable(writable);
-		creationTime = new Date();
+		setWritability(writable);
 	}
-	
+	    
 	/**
-	 * Initialize a new disk item with a given name
-	 * 
-	 * @effect A new disk item is initialized with the given name as its name
-	 * 		   and true as its writable state
-	 * 		   | this(name, true)
-	 * 
+	 * Initialize a new disk item with given parent directory, name and 
+	 * writability.
+	 *   
+	 * @param  parent
+	 *         The parent directory of the new disk item.
+	 * @param  name
+	 *         The name of the new disk item.  
+	 * @param  writable
+	 *         The writability of the new disk item.
+	 * @post   The given directory is registered as the parent 
+	 *         directory of this item.
+	 *         | new.getParentDirectory() == parent
+	 * @post   The number of items registered in the given directory 
+	 *         is incremented with 1.
+	 *         | (new parent).getNbItems() == parent.getNbItems() + 1
+	 * @post   The given item is added to the items registered
+	 *         in the given directory.
+	 *         | (new parent).hasAsItem(this)
+	 * @post   All items registered in the given directory, that are 
+	 *         ordered after the given item are shifted one position 
+	 *         to the right.
+	 *         | for each I in 1..parent.getNbItems():
+	 *         |   if (parent.getItemAt(I).isOrderedAfter(name))
+	 *         |     then (new parent).getItemAt(I+1) == parent.getItemAt(I)
+	 * @effect The new modification time of this directory is updated.
+	 *         | (new parent).setModificationTime()         
+	 * @post   If the given name is a legal name for a disk item
+	 *         and the given name does not occur in the given directory,
+	 *         the name of this disk item is set to the given name.
+	 *         Otherwise the name of this disk item is set to
+	 *         a valid name.
+	 *         | if (isValidName(name) && !parent.exists(name)
+	 *         |      then new.getName().equals(name)
+	 *         |      else new.hasValidName()
+	 * @post   The new disk item has the given writability.
+	 *         | new.isWritable() == writable
+	 * @post   The creation time is initialized to some time during 
+	 *         constructor execution.
+	 *         | (new.getCreationTime().getTime() >= 
+	 *         |             System.currentTimeMillis()) &&
+	 *         | (new.getCreationTime().getTime() <=
+	 *         |             (new System).currentTimeMillis())
+	 * @post   The new disk item has no time of last modification.
+	 *         | new.getModificationTime() == null
+	 * @throws DiskItemNotWritableException [must]
+	 *         The given directory is not writable.
+	 *         | !parent.isWritable()
+	 * @throws IllegalArgumentException [must]
+	 *         The given directory is not effective or the new disk item
+	 *         can not have the given valid name as its name and the given
+	 *         writable parent directory as its parent directory.
+	 *         | parent == null || 
+	 *         | (parent.isWritable() && isValidName(name) &&
+	 *         |  !canHaveAsNameInParentDirectory(name,parent))
 	 */
-	public DiskItem(String name)
-	{
-		
-		this(name, true);
-	}
-		
-	/**
-	 * The name of a Disk item
-	 * 
-	 * @return The name of this disk item
-	 */
-	public String getName() {
-		return name;
-	}
-	/**
-	 * Set the name of this disk item to the given name
-	 * 
-	 * @param name 
-	 * 		  The name to set.
-	 * @post   the new name is equal to the given name.
-	 * 		  | if canHaveAs(name) 
-	 * 				then new.name == name
-	 * @post  If the old name was not set,  the new name will be equal to "X".
-	 * 		  | if(this.name == null)
-	 * 				then new.name == "X"
-	 * @post  If the old name was set, the modification time will be set to the current time.
-	 * 		  | if(this.name != null) 
-	 * 				then setCurrentModificationTime()
-	 * @throws NotWritableException
-	 * 		   The user has no rights to change the name of the file
-	 * 		   | !isWritable()
-	 * @see    p.44-45
-	 */
-	public void setName(String name) throws NotWritableException{
+	 @Model protected DiskItem(Directory parent, String name, boolean writable) 
+	              throws IllegalArgumentException, 
+	                     DiskItemNotWritableException {
+	   if ((parent == null) ||
+		   (parent.isWritable() && !canHaveAsNameInParentDirectory(name,parent)))
+	     throw new IllegalArgumentException();
+	   if (!parent.isWritable())
+	     throw new DiskItemNotWritableException(parent);
+	   setWritability(writable);
+	   setNameForParentDirectory(name,parent);
+	   try {
+		setParentDirectory(parent);
+	   } catch (IllegalArgumentException e1) {
+		 // cannot occur 
+	    	 assert false;
+	   }
+	   try {
+		parent.addToItemsAndUpdateModificationTime(this);
+	   } catch (DiskItemNotWritableException e) {
+		   //cannot occur
+		   assert false;
+	   } catch (IllegalAddException e) {
+		   //cannot occur
+		   assert false;
+	   }
+	 }
+	    
+	/**********************************************************
+	 * delete/termination
+	 **********************************************************/
 
-		if(!isWritable())
-			throw new NotWritableException(this);
-
-		if(canHaveAsName(name)){
-			this.name = name;
-		}
-
-
-		if (this.name == null){
-			this.name = "X";
-		}
-		else {
-			setCurrentModificationTime();
-		}
-
-	}
 	/**
-	 * Check whether the given the name is valid for this diskitem
-	 * 
-	 * @return True if and only if the given name contains only alphabetical and numerical characters and dots, 
-	 * 		  	hyphens and underscores, and the given name is of at least length 1 
-	 *        	and the given name is effective.
-	 *        	| result == name.matches("[A-Za-z0-9._-]+")) 
+	 * Check whether this disk item is already terminated.
 	 */
-	public boolean canHaveAsName(String name){
-		return name.matches("[A-Za-z0-9._-]+");
-	}
-		
-	protected final Date creationTime;
-	/**
-	 * The creation time reveals the time when the file was created
-	 * @return the creationTime of this file
-	 */
-	@Basic @Immutable
-	public Date getCreationTime() {
-		return creationTime;
-	}
-	
-	protected Date lastModificationTime;
-	
-	/**
-	 * The time of last modification reveals when this file was modified for the last time
-	 * @return the lastModificationTime of this file
-	 */
-	@Basic
-	public Date getLastModificationTime() {
-		return lastModificationTime;
-	}
-	/**
-	 * Set the time of last modification of this file to the given time
-	 * 
-	 * @param lastModificationTime 
-	 * 		  The new time of last modification of this file
-	 * @post  The time of last modification equals the given time
-	 * 		  | new.getLastModificationTime() == lastModificationTime
-	 */
-	@Raw @Basic
-	public void setLastModificationTime(Date lastModificationTime) {
-		this.lastModificationTime = lastModificationTime;
-	}
-	/**
-	 * Set the time of last modification of this file to the current time
-	 * 
-	 * @effect The time of last modification of this file is set to the current time
-	 * 		   | setCurrentModificationTime(currentTime)
-	 */
-	@Raw @Basic
-	public void setCurrentModificationTime(){
-		setLastModificationTime(new Date());
-	}
-	/**
-	 * Check whether the user period of this file overlaps with the user period of the other file
-	 * 
-	 * @param  other
-	 * 		   The file to compare with, whether the user period overlaps
-	 * @return True if and only if the other file is effective and if both the other file and this file have an effective time
-	 * 		   of last modification and if the creation time of this file is before the modification time of the other file
-	 * 		   and if the creation time of the other file is before the modification time of this file
-	 * 		   | if(other != null 
-	 * 				&& this.lastModificationTime != null 
-	 * 				&& other.lastModificationTime != null
-	 * 				&&creationTime.before(other.lastModificationTime)
-	 * 				&& other.creationTime.before(lastModificationTime))
-	 * 					result==true 				
-	 */
-	public boolean hasOverlappingUsePeriod(File other){
-		if(other != null && this.lastModificationTime != null && other.lastModificationTime != null){
-			//( start1 <= end2 and start2 <= end1 )
-			return (creationTime.before(other.lastModificationTime)&& other.creationTime.before(lastModificationTime));
-			
-		}
-		return false;
-	}
-	
-	protected boolean writable = true;
-	
-	/**
-	 * Check whether this file is writable
-	 * 
-	 * Some methods have no effect when the file is not writable
-	 */
-	@Basic @Raw
-	public boolean isWritable() {
-		return writable;
-	}
-	
-	/**
-	 * Set the writable state to the given flag
-	 * 
-	 * @param writable 
-	 * 		  The new writable state for this file
-	 * @post  The new writable state of this file is equal to the given flag
-	 * 		  | new.isWritable() == writable
-	 *  
-	 */
-	@Raw @Basic
-	public void setWritable(boolean writable) {
-		this.writable = writable;
-	}
-	
-	private Directory directory;
-	
-	/**
-	 * Set the parent directory of this disk item
-	 * 
-	 * @param dir
-	 * 		  The parent directory that must contain this disk item
-	 * @post  The directory of this disk item equals the given directory,
-	 * 		  if the given directory is not effective, 
-	 * 		  this disk item is considered a root item.
-	 * 		  | new.getDirectory() == dir
-	 */
-	@Raw @Basic
-	private void setDirectory(Directory dir){
-		directory = dir;
-	}
-	/**
-	 * Returns the parent directory of this disk item
-	 * 
-	 * @result The parent directory of this disk item.
-	 *         | result == directory
-	 * 
-	 */
-	@Raw @Basic
-	public Directory getDirectory(){
-			return directory;
-	}
-	/**
-	 * Returns the root disk item of this disk item.
-	 * 
-	 * @return The root disk item of this disk item.
-	 *         If this disk items has no parent directory, this disk item is returned.
-	 *         Otherwise the root of the parent directory is returned.
-	 *         | if(getDirectory() == null) then
-	 *         |    result == this
-	 *         | else
-	 *         |    result == getDirectory().getRoot()
-	 */
-	public DiskItem getRoot()
-	{
-		if(getDirectory() == null)
-		{
-			return this;
-		}
-		else
-		{
-			return getDirectory().getRoot();
-		}
-	}
-	/**
-	 * Changes this disk item into a root disk item.
-	 * @effect The parent directory is set to null.
-	 *         | setDirectory(null)
-	 */
-	public void makeRoot()
-	{
-		move(null);
-	}
-	/**
-	 * Checks if this disk items name precedes the other disk items name (non-case sensitive) lexicographically.
-	 * 
-	 * @param otherItem The other disk item to check against.
-	 * @return True if the name of this item precedes the other disk items name lexicographically.
-	 *         | if getName().compareToIgnoreCase(otherName) < 0 and otherItem != null then
-	 *         |    result == true
-	 *         | else
-	 *         |    result == false
-	 * 
-	 */
-	protected boolean precedes(String otherName)
-	{
-		String thisName = getName();
-		return otherName != null && (thisName.compareToIgnoreCase(otherName) < 0);
-	}
-	/**
-	 * Checks whether this disk item can be moved to the given target directory.
-	 * 
-	 * @param target The target directory to check against.
-	 * @return True if the target exists
-	 *         and the target doesn't already have a sub item with the same (case insensitive) name
-	 *         and this disk item and the target are both not terminated
-	 *         | result == (target != null && !target.exists(getName()) && !isTerminated() && !target.isTerminated())
-	 */
-	public boolean canMoveTo(Directory target)
-	{
-		if(isTerminated())
-		{
-			return false;
-		}
-		if(target == null)
-		{
-			return true;
-		}
-		else if (target.exists(getName()) || target.isTerminated())
-		{
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
-	/**
-	 * If this disk item can be moved to the target directory, the disk item will be moved to the target directory
-	 * 
-	 * @param target The target directory.
-	 * @post The parent directory of this disk item is the target directory and the target directory contains this disk item.
-	 *       | target.hasAsItem(this) and getDirectory() == target
-	 * @throws InvalidParentException
-	 *         If this disk item can't be moved to the target directory.
-	 *         | not canMoveTo(target)
-	 */
-	public void move(Directory target) throws InvalidParentException
-	{
-		if(!this.canMoveTo(target))
-		{
-			System.out.println("Throw exception here");
-			throw new InvalidParentException(target, this);
-		}
-		else
-		{
-			if(getDirectory() != null)
-			{
-				getDirectory().removeItem(this);
-			}
-			if(target != null)
-			{
-				target.addItem(this);
-			}
-			setDirectory(target);
-		}
-	}
-	private boolean isTerminated;
-	/**
-	 * Checks whether this disk item is terminated or not.
-	 * 
-	 * @return Whether this disk item is terminated or not.
-	 *         | result == isTerminated
-	 */
-	@Basic
-	public boolean isTerminated()
-	{
+	@Raw public boolean isTerminated() {
 		return this.isTerminated;
 	}
+
 	/**
-	 * Terminates this disk item and breaks the relation with its parent directory.
+	 * Check whether this disk item can be deleted.
 	 * 
-	 * @Post Sets the terminated state of this disk item to true.
-	 *       | isTerminated() == true
-	 * @Effect If this disk item had a parent directory, this disk items parent directory will be set to null.
-	 *       | if(getDirectory() != null) then
-	 *       |    setDirectory(null)
-	 * @Effect If this disk item had a parent directory,
-	 *         this disk item will be removed from the sub items the parent directory has.
-	 *       | if(getDirectory() != null) then
-	 *       |    getDirectory().removeItem(this)
+	 * @return False if either:
+	 *         - this disk item is already terminated
+	 *         - this disk item is not writable
+	 *         - this disk item is not a root, and its parent
+	 *           directory is not writable;
+	 *         Undefined otherwise.
+	 *       | if ( isTerminated() || !isWritable() ||
+	 *       |      (!isRoot() && !getParentDirectory().isWritable()) )
+	 *       |   then result == false
+	 */
+	public boolean canBeTerminated() {
+		// when the result is undefined according to the specification,
+		// the implementation returns true.
+		return !isTerminated() && isWritable() &&
+		       (isRoot() || getParentDirectory().isWritable());
+	}
+
+	/**
+	 * Terminate this disk item.
+	 * 
+     * @post This disk item is terminated.
+     *       | new.isTerminated()
+     * @effect If this disk item is not a root, this disk item is
+     *         removed from its parent directory.
+     *         | if (!isRoot())
+     *         | then getParentDirectory().
+     *         |          removeFromItemsAndUpdateModificationTime(this)
+	 * @throws ImpossibleDeleteException [must]
+	 * 		   This disk item can not be deleted.
+	 * 		   | ! canBeTerminated()
+	 */
+	public void terminate() throws ImpossibleDeletionException {
+		if (!canBeTerminated()) {
+			throw new ImpossibleDeletionException(this);
+		}
+		try {
+			getParentDirectory().removeFromItemsAndUpdateModificationTime(this);
+		} catch (NullPointerException e) {
+		   // this item is a root item and can thus not
+		   // be removed from its parent directory.
+		   assert isRoot();
+		} catch (DiskItemNotWritableException e) {
+		   // cannot occur: canBeDeleted() implies 
+		   //               getParentDirectory().isWritable()
+		   assert false;
+		} catch (NoSuchItemException e) {
+		  // cannot occur: this item is not a root item
+		  // and thus must have a parent directory.
+		  assert false;
+		}
+		try {
+		  setIsTerminated(true);
+		} catch (IllegalArgumentException e) {
+			assert false;
+		}
+	}
+	
+	/**
+	 * Check whether this disk item can have the given terminated-state
+	 * as ist terminated-state.
+	 * @param terminatedState
+	 *        The terminated-state to check.
+	 * @return True if this disk item is not terminated, or if the given
+	 *         terminated-state is true. 
+	 *         | !isTerminated || terminatedState
+	 */
+	public boolean canHaveAsTerminationState(boolean terminatedState) {
+		return (!isTerminated || terminatedState);
+	}
+
+	/**
+	 * Set the terminated-state for this disk item according to the
+	 * given flag.
+	 * 
+	 * @param flag
+	 *        The flag to be registered.
+	 * @post The terminated-state of this disk item is set according
+	 *       to the given flag.
+	 *       | new.isTerminated() == flag
+	 * @throws IllegalArgumentException [must]
+	 *         If this disk item is already terminated, then the disk
+	 *         item must remain terminated.
+	 *         | !canHaveAsTerminationState(flag)  
+	 */
+	private void setIsTerminated(boolean flag) throws IllegalArgumentException {
+		if (!canHaveAsTerminationState(flag)) {
+			throw new IllegalArgumentException();
+		}
+		this.isTerminated = flag;
+	}
+
+	/**
+	 * Variable registering whether or not this disk item 
+	 * has been terminated.
 	 * 
 	 */
-	public void terminate()
-	{
-		makeRoot();
-		isTerminated = true;
-		
+	private boolean isTerminated = false;
+
+	/**********************************************************
+	 * name
+	 **********************************************************/
+
+	/**
+	 * Checks whether the name of this item equals or is lexicographically 
+	 * ordered after the given name, ignoring case.
+	 * 
+	 * @param name
+	 *        The name to compare with
+	 * @return True if the given name is effective, this item
+	 *         has an effective name and the name of this item comes
+	 *         strictly after the given name, ignoring case; 
+	 *         false otherwise.
+	 *       | result == (name != null) && (getName() != null) &&
+	 *       |           (getName().compareToIgnoreCase(name) > 0)
+	 */
+	@Raw public boolean isOrderedAfter(String name) {
+		return (name != null) && (getName() != null)
+			&& (getName().compareToIgnoreCase(name) > 0);
 	}
+
+	/**
+	 * Checks whether the name of this item equals or is lexicographically 
+	 * ordered before the given name, ignoring case.
+	 * 
+	 * @param name
+	 *        The name to compare with
+	 * @return True if the given name is effective, this item
+	 *         has an effective name and the name of this item comes
+	 *         strictly before the given name, ignoring case; 
+	 *         false otherwise.
+	 *       | result == (name != null) && (getName() != null) &&
+	 *       |           (getName().compareToIgnoreCase(name) < 0)
+	 */
+	@Raw public boolean isOrderedBefore(String name) {
+		return (name != null) && (getName() != null)
+			&& (getName().compareToIgnoreCase(name) < 0);
+	}
+
+	/**
+	 * Checks whether this item is ordered after the given other item
+	 * according to the lexicographic ordering of their names,
+	 * ignoring case.
+	 * 
+	 * @param other
+	 *        The item to compare with
+	 * @return True if the given other item is effective, and the name
+	 *         of this item is lexicographically ordered after the name
+	 *         of the given other item;
+	 *         false otherwise.
+	 *       | result == (other != null) && 
+	 *       |           isOrderedAfter(other.getName())
+	 */
+	@Raw public boolean isOrderedAfter(DiskItem other) {
+		return (other != null) && isOrderedAfter(other.getName());
+	}
+
+	/**
+	 * Checks whether this item is ordered before the given other item
+	 * according to the lexicographic ordering of their names,
+	 * ignoring case.
+	 * 
+	 * @param other
+	 *        The item to compare with
+	 * @return True if the given other item is effective, and the name
+	 *         of this item is lexicographically ordered before the name
+	 *         of the given other item;
+	 *         false otherwise.
+	 *       | result == (other != null) && 
+	 *       |           isOrderedBefore(other.getName())
+	 */
+	@Raw public boolean isOrderedBefore(DiskItem other) {
+		return (other != null) && isOrderedBefore(other.getName());
+	}
+
+	/**
+	 * Return the name of this disk item.
+	 */
+	@Raw public String getName() {
+		return name;
+	}
+
+	/**
+	 * Check whether the given name is a legal name for a disk item.
+	 *
+	 * @return	True if the given string is effective, if it is not
+	 * 			empty and if it only consists of letters, digits, dots,
+	 * 			hyphens and underscores; false otherwise.
+	 * 			| result ==
+	 * 			|	(name != null) && name.matches("([a-zA-Z_0-9.-])+")
+	 */
+	public static boolean isValidName(String name) {
+		return (name != null && name.matches("([a-zA-Z_0-9.-])+"));
+	}
+		
+	/**
+	 * Check whether the name of this disk item can be changed into the
+	 * given name.
+	 * 
+	 * @return  True if this disk item is not terminated, the given 
+	 *          name is a valid name for a disk item, this disk item
+	 *          is writable, and either this item is a root item or
+	 *          the given name does not cause multiple items having
+	 *          the same name in the parent directory;
+	 *          false otherwise.
+	 *          | result == !isTerminated() && isWritable() && 
+	 *          |           isValidName(name) &&
+	 *          |           ( isRoot() || 
+	 *          |             !getParentDirectory().exists(name) ||
+	 *          |             getParentDirectory().getItem(name) == this )
+	 */
+	public boolean canAcceptAsNewName(String name) {
+	  try {
+	    return (!isTerminated() && isWritable() && isValidName(name) &&
+	    		    ( isRoot() || 
+	    			  !getParentDirectory().exists(name) ||
+	    			  getParentDirectory().getItem(name) == this ) );
+	  } catch (NoSuchItemException e) {
+	    // cannot occur: getItem(name) can only throw this 
+	    // exception when !exists(name)
+	    assert false;
+	    return false;
+	  }
+	}	
+
+	/**
+	 * Check whether this disk item has a properly spelled name.
+	 *
+	 * @return	True if and only if the name of this disk item
+	 *           is a valid name.
+	 * 			| result == isValidName(getName())
+	 */
+	@Raw public boolean hasValidName() {
+		return isValidName(getName());
+	}
+
+	/**
+	 * Set the name of this disk item to the given name.
+	 *
+	 * @param	name
+	 * 			The new name for this disk item.
+	 * @effect  If this disk item can accept the given name as
+	 *          its name, the name of this disk item is set to
+	 *          the given name.
+	 *          Otherwise the name of this disk item remains
+	 *          unchanged.
+	 *          | if (canAcceptAsNewName(name))
+	 *          | then setName(name)
+	 *          | else new.getName().equals(getName())
+	 * @effect  If this disk item can accept the given name as
+	 *          its name, the modification time of this disk item is 
+	 *          updated.
+	 *          | if (canAcceptAsNewName(name))
+	 *          | then setModificationTime()
+	 * @effect  If this disk item is not a root item and this disk item
+	 *          can accept the given name as its name, this disk item 
+	 *          may have been shifted to the left or right in the
+	 *          sequence of items registered in its parent directory.
+	 *          | if (canAcceptAsNewName(name) && !isRoot())
+	 *          | then let parent = getParentDirectory() in
+	 *          | (new parent).hasValidItems()
+	 * @throws  DiskItemNotWritableException
+	 *          This disk item is not writable.
+	 *          | !isWritable() [must]
+	 */
+	public void changeName(String name) throws DiskItemNotWritableException {
+	  if (canAcceptAsNewName(name)) {
+	    setModificationTime();
+        if (isRoot()) {
+    	      setName(name);
+	    } else {
+		  try {
+		    Directory parent = getParentDirectory();
+		    int position = parent.getIndexOf(this);
+		    setName(name);
+		    parent.moveItemAtToSortedPosition(position);			
+		  } catch (NoSuchItemException e) {
+			// cannot occur
+			assert false;
+		  }
+	    }
+	  } else if (!isWritable()) {
+			  throw new DiskItemNotWritableException(this);
+			        // NOTICE, the specification of the first assignment
+			        // has been changed.
+	         }
+	}
+
+	/**
+	 * Return the name for a new disk item which is to be used
+	 * when the given name is not valid.
+	 *
+	 * @return A valid disk item name.
+	 *         | isValidName(result)
+	 */
+	@Raw public String getDefaultName() {
+		return "new_item";
+	}
+
+	/**
+	 * Set the name of this disk item to the given name taking into
+	 * account the given (parent) directory.
+	 *
+	 * @param   name
+	 * 		    The new name for this disk item.
+	 * @param   parent
+	 *          The directory in which the new name of this disk
+	 *          item must not occur
+     * @pre     This disk item is not terminated.
+     *          | ! isTerminated()          
+	 * @pre     The given directory is an effective directory.
+	 *          | directory != null
+	 * @post    If the given name is a legal name for a disk item
+	 *          and the given name does not occur in the given directory,
+	 *          the name of this disk item is set to the given name.
+	 *          Otherwise the name of this disk item is set to
+	 *          a valid name.
+	 *          | if (isValidName(name) && !parent.exists(name)
+	 *          |      then new.getName().equals(name)
+	 *          |      else new.hasValidName()
+	 */
+	@Raw private void setNameForParentDirectory(String name,
+			     Directory parent) {
+		String nameForParent = name;
+		if (!isValidName(nameForParent)) {
+			nameForParent = getDefaultName();
+		}
+		while (parent.exists(nameForParent)){
+			nameForParent = nameForParent+'_';
+		}
+		setName(nameForParent);
+	}	
+	
+	/**
+	 * Set the name of this disk item to the given name.
+	 *
+	 * @param   name
+	 * 		   The new name for this disk item.
+     * @pre     This disk item is not terminated.
+     *          | ! isTerminated()
+	 * @post    If the given name is a legal name for a disk item,
+	 *          the name of this disk item is set to the given name.
+	 *          Otherwise the name of this disk item is set to
+	 *          a valid name.
+	 *          | if (isValidName(name))
+	 *          |      then new.getName().equals(name)
+	 *          |      else new.hasValidName()
+	 */
+	@Model @Raw private void setName(String name) {
+		if (isValidName(name)) {
+			this.name = name;
+		}
+		else {
+			this.name = getDefaultName();
+		}
+	}
+
+	/**
+	 * Variable referencing the name of this file.
+	 */
+	private String name;
+
+	/**********************************************************
+	 * creationTime
+	 **********************************************************/
+
+	/**
+	 * Return the time at which this disk item was created.
+	 */
+	@Raw public Date getCreationTime() {
+		return creationTime == null ? null : new Date(creationTime.getTime());
+	}
+
+	/**
+	 * Return whether this disk item has a valid creation time.
+	 *
+	 * @return True if and only if this disk item has an effective
+	 *         creation time which does not lie in the future.
+	 *         | result == (getCreationTime() != null) &&
+	 *         | (getCreationTime().getTime() <=
+	 *         |              System.currentTimeMillis())
+	 */
+	@Raw public boolean hasValidCreationTime() {
+		Date creationTime = getCreationTime();
+		return creationTime != null
+			&& creationTime.getTime() <= System.currentTimeMillis();
+	}
+
+	/**
+	 * Variable referencing the time of creation.
+	 */
+	private final Date creationTime = new Date();
+
+	/**********************************************************
+	 * modificationTime
+	 **********************************************************/
+
+	/**
+	 * Return the time at which this disk item was last modified, 
+	 * that is at which the name or contents was last changed.
+	 * If this disk item has not yet been modified after
+	 * construction, null is returned.
+	 */
+	@Raw public Date getModificationTime() {
+		return modificationTime == null ? null : new Date(modificationTime
+			.getTime());
+	}
+
+	/**
+	 * Return whether this disk item has a valid modification time.
+	 *
+	 * @pre    This disk item has a valid creation time.
+	 *         | hasValidCreationTime()
+	 * @return True if and only if this disk item either has no
+	 *         effective modification time, or the modification time
+	 *         lies between the creation time and the current time.
+	 *         | result == (getModificationTime() == null) ||
+	 *         | ( (getModificationTime().getTime() >=
+	 *         |                   getCreationTime().getTime()) &&
+	 *         |   (getModificationTime().getTime() <=
+	 *         |                   System.currentTimeMillis()))
+	 */
+	@Raw public boolean hasValidModificationTime() {
+		Date modificationTime = getModificationTime();
+
+		return (modificationTime == null)
+			|| ((modificationTime.getTime() >= getCreationTime().getTime()) && 
+				(modificationTime.getTime() <= System.currentTimeMillis()) );
+	}
+
+	/**
+	 * Set the modification time of this disk item to the current time.
+	 *
+	 * @pre    This disk item is not terminated.
+     *         | ! isTerminated()
+	 * @post   The new modification time is effective.
+	 *         | new.getModificationTime() != null
+	 * @post   The new modification time lies between the system
+	 *         time at the beginning of method execution and
+	 *         the system time at the end of method execution.
+	 *         | (new.getModificationTime().getTime() >=
+	 *         |                    System.currentTimeMillis()) &&
+	 *         | (new.getModificationTime().getTime() <=
+	 *         |                    (new System).currentTimeMillis())
+	 */
+	@Model protected void setModificationTime() {
+		modificationTime = new Date();
+	}
+
+	/**
+	 * Variable referencing the time of the last modification,
+	 * possibly null.
+	 */
+	private Date modificationTime = null;
+
+	/**
+	 * Return whether this disk item and the given other disk item
+	 * have an overlapping use period.
+	 *
+	 * @param other
+	 *        The other disk item to compare with.
+	 * @pre   The given other disk item is an effective disk item.
+	 *        | other != null
+	 * @return False if one or both disk items do not have a modification
+	 *         time.
+	 *         Otherwise, true if the respective open intervals from
+	 *         creation time to the modification time overlap.
+	 *        | if ((getModificationTime() == null)||
+	 *        |       other.getModificationTime() == null)
+	 *        |    then result == false
+	 *        |    else result ==
+	 *        | (getCreationTimeTime().before(other.getModificationTime()) &&
+	 *        |     other.getCreationTime().before(getModificationTime()))
+	 */
+	public boolean hasOverlappingUsePeriod(DiskItem other) {
+		if ((getModificationTime() == null)
+			|| other.getModificationTime() == null) {
+			return false;
+		}
+		return (getCreationTime().before(other.getModificationTime()) && other
+			.getCreationTime().before(getModificationTime()));
+	}
+
+	/**********************************************************
+	 * isWritable
+	 **********************************************************/
+	/**
+	 * Check whether this file is writable.
+	 */
+	@Raw public boolean isWritable() {
+		return isWritable;
+	}
+
+	/**
+	 * Set the writability of this disk item to the given writability.
+	 *
+	 * @param isWritable
+	 *        The new writability
+     * @pre    This disk item is not terminated.
+     *         | ! isTerminated()  
+	 * @post  The given writability is registered as the writability
+	 *        for this disk item.
+	 *        | new.isWritable() == isWritable
+	 */
+	public void setWritability(boolean isWritable) {
+		this.isWritable = isWritable;
+	}
+
+	/**
+
+	 * 
+	 * Variable registering whether or not this file is writable.
+	 */
+	private boolean isWritable;
+	
+	/**********************************************************
+	 * parent directory
+	 **********************************************************/	
+	
+	/**
+	 * Return the root item to which this item directly or indirectly
+	 * belongs. In case this item is a root item, the item itself is 
+	 * the result.
+	 * 
+	 * @return If this item is a root item, this item is returned;
+	 *         Otherwise the root to which the parent item of this 
+	 *         item belongs is returned.
+	 *         | result.isRoot() && 
+	 *         | result.equalsOrIsDirectOrIndirectParentOf(this)
+	 */
+	 public DiskItem getRoot() {
+		 if (isRoot()) {
+		   return this;
+		 } else {
+		   return getParentDirectory().getRoot();
+		 }
+     }
+				
+	/**
+	 * Move this disk item to a given directory.
+	 * 
+	 * @param  target
+	 *         The target directory.
+     * @effect If this disk item is not a root, this disk item is
+     *         removed from its parent directory.
+     *         | if (!isRoot())
+     *         | then getParentDirectory().
+     *         |          removeFromItemsAndUpdateModificationTime(this)
+     * @effect This disk item is added to the target directory.
+     *         | target.addToItemsAndUpdateModificationTime(this)
+    	 * @effect The modification time is updated.
+	 *         | setModificationTime()
+	 * @post   The given directory is registered as the parent directory 
+	 *         of this item.
+	 *         | new.getParentDirectory() == target
+	 * @throws IllegalArgumentException [must]
+	 *         The given target directory is not effective, or the parent
+	 *         directory of this disk item is the given target directory.
+	 *         | (target == null) || 
+	 *         | (target == getParentDirectory())
+ 	 */
+	public void move(Directory target) throws IllegalArgumentException, 
+                                              IllegalAddException,
+                                              DiskItemNotWritableException {
+	  if ( (target == null) || (getParentDirectory() == target) )
+		  throw new IllegalArgumentException();
+	  if (!isWritable())
+		  throw new DiskItemNotWritableException(this);
+	  if (!target.isWritable())
+		  throw new DiskItemNotWritableException(target);
+	  if (!target.canHaveAsItem(this))
+		  throw new IllegalAddException(target,this);
+	  
+	  if (!isRoot()) {
+	    try {
+		  getParentDirectory().removeFromItemsAndUpdateModificationTime(this);
+		  // throws DiskItemNotWritableException when
+		  // !getParentDirectory().isWritable()
+		} catch (NoSuchItemException e) {
+		  // cannot occur 
+	    	  assert false;
+	    }
+      }
+	  try {
+	    target.addToItemsAndUpdateModificationTime(this);
+	  } catch (DiskItemNotWritableException e) {
+	     // cannot occur
+		 assert false;
+	  } catch (IllegalAddException e) {
+		 //cannot occur
+		 assert false;
+	  }
+	  try {
+		setParentDirectory(target);
+	  } catch (IllegalArgumentException e) {
+		  //cannot occur
+		  assert false;
+  	  }
+	  setModificationTime();
+	}
+		
+	 
+	/**
+	 * Turns this disk item in a root disk item.
+	 * 
+	 * @post   The disk item is a root disk item.
+	 *         | new.isRoot()
+     * @effect If this disk item is not a root, this disk item is
+     *         removed from its parent directory.
+     *         | if (!isRoot())
+     *         | then getParentDirectory().
+     *         |          removeFromItemsAndUpdateModificationTime(this)
+	 * @throws DiskItemNotWritableException [must]
+	 *         This diskitem is not a root item and either this 
+	 *         diskitem is not writable or its parent directory
+	 *         is not writable.
+	 *         | !isRoot() && (!isWritable() || 
+	 *         |               !getParentDirectory().isWritable())
+	 */ 
+	public void makeRoot() throws DiskItemNotWritableException {
+      if (!isRoot()) {
+        if (!isWritable()) {
+	      throw new DiskItemNotWritableException(this);
+		}	          
+		try {
+		  getParentDirectory().removeFromItemsAndUpdateModificationTime(this);
+          //	 throws DiskItemNotWritableException if
+		  // the parent is not writable
+		} catch (NoSuchItemException e) {
+		  //cannot occur
+		  assert false;
+		}
+		setParentDirectory(null);
+		setModificationTime();
+	  }
+	}
+			  	 
+	
+	/**
+	 * Check whether this item is equal to the given item or is a direct
+	 * or indirect parent of the given item.
+	 * 
+	 * @param other
+	 *        The disk item to check.
+	 * @return True if the given item is equal to this item or
+	 *         if the given item is effective and this item equals or is
+	 *         the direct or indirect parent of the parent of the given
+	 *         item;
+	 *         False otherwise.
+	 *       | result == (this == item) || 
+	 *       |            ( item != null && 
+	 *       |              equalsOrIsDirectOrIndirectParentOf(
+	 *       |                        item.getParentDirectory()) )  
+	 */
+	@Raw public boolean equalsOrIsDirectOrIndirectParentOf(@Raw DiskItem item) {
+		return ((this == item) || 
+			    ( (item != null) && 
+			    	  (equalsOrIsDirectOrIndirectParentOf(item.getParentDirectory()))
+			    	) );
+	}
+
+	/**
+	 * Check whether this item is a root item.
+	 * 
+	 * @return  True if this item has a noneffective parent directory;
+	 *          false otherwise.
+	 *        | result == (getParentDirectory() == null)
+	 */
+	@Raw public boolean isRoot() {
+		return getParentDirectory() == null;
+	}
+
+	/**
+	 * Check whether this item belongs to a proper parent 
+	 * directory.
+	 *
+	 * @return True if this item can have its parent directory
+	 *       	as parent directory.
+	 *        | result == canHaveAsParentDirectory(getParentDirectory())
+	 */
+	@Raw public boolean hasValidParentDirectory() {
+		return canHaveAsParentDirectory(getParentDirectory());
+	}
+
+	/** 
+	 * Check whether this disk item can have the given directory as
+	 * its parent directory.
+	 * 
+	 * @param   directory
+	 *          The directory to check.
+	 * @return  If this disk item is terminated, true if the given
+	 *          directory is not effective, false otherwise.
+	 *          | if (this.isTerminated())
+	 *          |    then result == (directory == null)
+	 * @return  Otherwise, if the given directory is not effective,
+	 *          true if this disk item is a root item, or the parent
+	 *          directory of this disk item is writable, false otherwise.
+	 *          | else if (directory == null)
+	 *          |   then result ==
+	 *          |     (this.isRoot() ||
+	 *          |      this.getParentDirectory().isWritable());
+	 * @return  Otherwise, false if the given directory is terminated.
+	 *          | else if (directory.isTerminated())
+	 *          |   then result == false
+	 * @return  Otherwise, false if the given directory is the same as
+	 *          this disk item, or if this disk item is the direct or
+	 *          indirect parent directory of the given directory.
+	 *          | else if (equalsOrIsDirectOrIndirectParentOf(directory))
+	 *          |   then result == false
+	 * @return  Otherwise, if the parent directory of this disk item is
+	 *          the same as the given directory, true if that directory
+	 *          has this disk item as one of its items, false otherwise.
+	 *          | else if (getParentDirectory() == directory)
+	 *          |   then result == directory.hasAsItem(this)
+	 * @return  Otherwise, true if the given directory is writable, and
+	 *          if this disk item is a root item, or the parent directory
+	 *          of this disk item is writable, false otherwise.
+	 *          | else result ==
+	 *          |   (directory.isWritable() &&
+	 *          |   (isRoot() || getParentDirectory().isWritable()))
+	 */
+	@Raw public boolean canHaveAsParentDirectory(@Raw Directory directory) {
+		if (this.isTerminated())
+			return (directory == null);
+		if (directory == null)
+			return (this.isRoot() || this.getParentDirectory().isWritable());
+		if (directory.isTerminated())
+			return false;
+		if (equalsOrIsDirectOrIndirectParentOf(directory))
+			return false;
+		if (getParentDirectory() == directory)
+			return directory.hasAsItem(this);
+		return directory.isWritable()
+			&& (isRoot() || getParentDirectory().isWritable());
+	}
+
+	/**
+	 * Check whether this disk item can have the given name as its
+	 * name and the given parent directory as its parent directory
+	 * 
+	 * @param   name
+	 *          The name to check.
+	 * @param   directory
+	 *          The directory to check.
+	 * @return  False if the given name is not a valid name for a
+	 *          disk item.
+	 *          | if (! isValidName(name))
+	 *          |   then result == false
+	 * @return  Otherwise, false if this disk item can not have the
+	 *          given directory as its parent directory.
+	 *          | if (! canHaveAsParentDirectory(directory))
+	 *          |   then result == false
+	 * @return  Otherwise, true if the given directory is not effective,
+	 *          or the given directory is the parent directory of this
+	 *          disk item, or if the given directory does not have a
+	 *          disk item with the given name; false otherwise.
+	 *          | else result ==
+	 *          |   ((directory == null) ||
+	 *          |    (getParentDirectory() == directory) ||
+	 *          |    (! directory.exists(name)))
+	 */
+	@Raw public boolean canHaveAsNameInParentDirectory(String name,
+			@Raw Directory directory) {
+		if (!isValidName(name))
+			return false;
+		if (!canHaveAsParentDirectory(directory))
+			return false;
+		return  (directory == null) 
+		        || (getParentDirectory() == directory)
+			    || ( !directory.exists(name));
+	}
+
+	/**
+	 * Set the parent directory of this item to the given directory.
+	 *
+	 * @param  directory
+	 *         The new parent directory for this item.
+     * @pre    This disk item is not terminated.
+     *         | ! isTerminated()
+	 * @post   The parent directory of this item is set to the given 
+	 *         directory.
+	 *         | new.getParentDirectory() == directory
+	 * @throws IllegalArgumentException [must]
+	 *         This item cannot have the given directory as its
+	 *         parent directory.
+	 *         | ! canHaveAsParentDirectory(parentDirectory)
+	 */
+	@Raw private void setParentDirectory(Directory parentDirectory)
+			throws IllegalArgumentException {
+		if (!canHaveAsParentDirectory(parentDirectory)) {
+			throw new IllegalArgumentException("Inappropriate item!");
+		}
+		this.parentDirectory = parentDirectory;
+	}
+
+	/**
+	 * Return the parent directory (if any) to which this item
+	 * applies.
+	 */
+	@Raw public Directory getParentDirectory() {
+		return parentDirectory;
+	}
+
+	/**
+	 * Variable referencing the directory (if any) to which this 
+	 * disk item belongs.
+	 * 
+	 * @invar This diskitem must can have the referenced directory
+	 *        as its parent directory.
+	 *        | canHaveAsParentDirectory(parentDirectory)
+	 */
+	private Directory parentDirectory;
+
 }
