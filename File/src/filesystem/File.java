@@ -19,7 +19,7 @@ import be.kuleuven.cs.som.annotate.Model;
  * @invar   Each file must have a valid type.
  *          | hasValidType()         
  */
-public class File extends DiskItem{
+public class File extends RealDiskItem{
 
     /**********************************************************
      * Constructors

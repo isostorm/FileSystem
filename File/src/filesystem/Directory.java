@@ -15,7 +15,7 @@ import filesystem.exception.*;
  * @invar Each directory must have a valid number of items.
  *        | hasValidNbItems()
  */
-public class Directory extends DiskItem {
+public class Directory extends RealDiskItem {
 
 	/**********************************************************
 	 * Constructors
@@ -72,7 +72,8 @@ public class Directory extends DiskItem {
            throws IllegalArgumentException,
                   DiskItemNotWritableException,
                   IllegalAddException    {
-        super(parent,name,writable);    
+        super(parent,name);
+        setWritability(writable);
     }
 
     /**
@@ -767,4 +768,30 @@ public class Directory extends DiskItem {
 	 *        | !items.get(I).getParentDirectory() == this
 	 */	
 	private final List<DiskItem> items = new ArrayList<DiskItem>();
+	
+	public boolean canAcceptAsNewName(String name) {
+		  try {
+		    return (!isTerminated() && isValidName(name) &&
+		    		    ( isRoot() || 
+		    			  !getParentDirectory().exists(name) ||
+		    			  getParentDirectory().getItem(name) == this ) );
+		  } catch (NoSuchItemException e) {
+		    // cannot occur: getItem(name) can only throw this 
+		    // exception when !exists(name)
+		    assert false;
+		    return false;
+		  }
+		}	
+
+	public void move(Directory target) throws IllegalArgumentException, 
+                                              IllegalAddException,
+                                              DiskItemNotWritableException
+                                              {
+
+		  if (!isWritable())
+			  throw new DiskItemNotWritableException(this);
+		  
+		  super.move(target);
+	}
+	
 }

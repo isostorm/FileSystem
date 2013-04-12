@@ -30,15 +30,15 @@ public abstract class DiskItem {
 	 * 
 	 * @param  name
 	 *         The name of the new disk item.
-	 * @param  writable
-	 *         The writability of the new disk item.
+	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX@param  writable
+	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX        The writability of the new disk item.
 	 * @post   The new disk item is a root disk item.
 	 *         | new.isRoot()
 	 * @effect The new disk item has the given name (if legal) or a
 	 *         legal name.
 	 *         | setName(name) 
-	 * @effect The new disk item has the given writability.
-	 *         | setWritability(writable)
+	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXX@effect The new disk item has the given writability.
+	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXX        | setWritability(writable)
 	 * @post   The creation time is initialized to some time during 
 	 *         constructor execution.
 	 *         | (new.getCreationTime().getTime() >= 
@@ -48,21 +48,21 @@ public abstract class DiskItem {
 	 * @post   The new file has no time of last modification.
 	 *         | new.getModificationTime() == null     
 	 */
-	@Model protected DiskItem(String name, boolean writable) {
+	@Model protected DiskItem(String name/*, /*boolean writable*/) {
 		setName(name);
-		setWritability(writable);
+		/*setWritability(writable);*/
 	}
 	    
 	/**
-	 * Initialize a new disk item with given parent directory, name and 
-	 * writability.
+	 * Initialize a new disk item with given parent directory, name 
+	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX and writability.
 	 *   
 	 * @param  parent
 	 *         The parent directory of the new disk item.
 	 * @param  name
 	 *         The name of the new disk item.  
-	 * @param  writable
-	 *         The writability of the new disk item.
+	 *XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX @param  writable
+	 *XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX         The writability of the new disk item.
 	 * @post   The given directory is registered as the parent 
 	 *         directory of this item.
 	 *         | new.getParentDirectory() == parent
@@ -88,8 +88,8 @@ public abstract class DiskItem {
 	 *         | if (isValidName(name) && !parent.exists(name)
 	 *         |      then new.getName().equals(name)
 	 *         |      else new.hasValidName()
-	 * @post   The new disk item has the given writability.
-	 *         | new.isWritable() == writable
+	 *XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX @post   The new disk item has the given writability.
+	 *XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX         | new.isWritable() == writable
 	 * @post   The creation time is initialized to some time during 
 	 *         constructor execution.
 	 *         | (new.getCreationTime().getTime() >= 
@@ -109,7 +109,7 @@ public abstract class DiskItem {
 	 *         | (parent.isWritable() && isValidName(name) &&
 	 *         |  !canHaveAsNameInParentDirectory(name,parent))
 	 */
-	 @Model protected DiskItem(Directory parent, String name, boolean writable) 
+	 @Model protected DiskItem(Directory parent, String name) 
 	              throws IllegalArgumentException, 
 	                     DiskItemNotWritableException {
 	   if ((parent == null) ||
@@ -117,7 +117,6 @@ public abstract class DiskItem {
 	     throw new IllegalArgumentException();
 	   if (!parent.isWritable())
 	     throw new DiskItemNotWritableException(parent);
-	   setWritability(writable);
 	   setNameForParentDirectory(name,parent);
 	   try {
 		setParentDirectory(parent);
@@ -163,7 +162,7 @@ public abstract class DiskItem {
 	public boolean canBeTerminated() {
 		// when the result is undefined according to the specification,
 		// the implementation returns true.
-		return !isTerminated() && isWritable() &&
+		return !isTerminated() &&
 		       (isRoot() || getParentDirectory().isWritable());
 	}
 
@@ -362,8 +361,8 @@ public abstract class DiskItem {
 	 */
 	public boolean canAcceptAsNewName(String name) {
 	  try {
-	    return (!isTerminated() && isWritable() && isValidName(name) &&
-	    		    ( isRoot() || 
+	    return (!isTerminated() && isValidName(name) &&
+	    		    ( 
 	    			  !getParentDirectory().exists(name) ||
 	    			  getParentDirectory().getItem(name) == this ) );
 	  } catch (NoSuchItemException e) {
@@ -414,7 +413,7 @@ public abstract class DiskItem {
 	 *          This disk item is not writable.
 	 *          | !isWritable() [must]
 	 */
-	public void changeName(String name) throws DiskItemNotWritableException {
+	public void changeName(String name) throws DiskItemNotWritableException{
 	  if (canAcceptAsNewName(name)) {
 	    setModificationTime();
         if (isRoot()) {
@@ -430,11 +429,7 @@ public abstract class DiskItem {
 			assert false;
 		  }
 	    }
-	  } else if (!isWritable()) {
-			  throw new DiskItemNotWritableException(this);
-			        // NOTICE, the specification of the first assignment
-			        // has been changed.
-	         }
+	  }
 	}
 
 	/**
@@ -632,37 +627,11 @@ public abstract class DiskItem {
 			.getCreationTime().before(getModificationTime()));
 	}
 
-	/**********************************************************
-	 * isWritable
-	 **********************************************************/
-	/**
-	 * Check whether this file is writable.
-	 */
-	@Raw public boolean isWritable() {
-		return isWritable;
-	}
 
-	/**
-	 * Set the writability of this disk item to the given writability.
-	 *
-	 * @param isWritable
-	 *        The new writability
-     * @pre    This disk item is not terminated.
-     *         | ! isTerminated()  
-	 * @post  The given writability is registered as the writability
-	 *        for this disk item.
-	 *        | new.isWritable() == isWritable
-	 */
-	public void setWritability(boolean isWritable) {
-		this.isWritable = isWritable;
-	}
 
-	/**
 
-	 * 
-	 * Variable registering whether or not this file is writable.
-	 */
-	private boolean isWritable;
+
+
 	
 	/**********************************************************
 	 * parent directory
@@ -715,8 +684,6 @@ public abstract class DiskItem {
                                               DiskItemNotWritableException {
 	  if ( (target == null) || (getParentDirectory() == target) )
 		  throw new IllegalArgumentException();
-	  if (!isWritable())
-		  throw new DiskItemNotWritableException(this);
 	  if (!target.isWritable())
 		  throw new DiskItemNotWritableException(target);
 	  if (!target.canHaveAsItem(this))
