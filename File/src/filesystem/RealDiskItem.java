@@ -1,10 +1,12 @@
 package filesystem;
 
 import filesystem.exception.DiskItemNotWritableException;
+import filesystem.exception.ImpossibleDeletionException;
+import filesystem.exception.NoSuchItemException;
 import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
 
-public class RealDiskItem extends DiskItem {
+public abstract class RealDiskItem extends DiskItem {
 	/**********************************************************
 	 * isWritable
 	 **********************************************************/
@@ -19,9 +21,21 @@ public class RealDiskItem extends DiskItem {
 	 */
 	private boolean isWritable;
 	
-	protected RealDiskItem(String name, boolean writable) {
+	protected RealDiskItem(Directory parent, String name, boolean writable)  
+            throws IllegalArgumentException, 
+            DiskItemNotWritableException
+	{
+		super(parent, name);
+		if (!parent.isWritable())
+			throw new DiskItemNotWritableException(parent);
+		setWritability(writable);
+		
+	}
+	protected RealDiskItem(String name, boolean writable)
+	{
 		super(name);
 		setWritability(writable);
+		
 	}
 	public boolean canBeTerminated()
 	{
@@ -52,4 +66,6 @@ public class RealDiskItem extends DiskItem {
 	public void setWritability(boolean isWritable) {
 		this.isWritable = isWritable;
 	}
+
+
 }

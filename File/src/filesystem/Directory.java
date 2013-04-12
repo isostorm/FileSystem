@@ -72,8 +72,7 @@ public class Directory extends RealDiskItem {
            throws IllegalArgumentException,
                   DiskItemNotWritableException,
                   IllegalAddException    {
-        super(parent,name);
-        setWritability(writable);
+        super(parent,name, writable);
     }
 
     /**
@@ -115,7 +114,7 @@ public class Directory extends RealDiskItem {
      * @see superclass
      */
     public boolean canBeTerminated() {
-        return super.canBeTerminated() && getNbItems() == 0;
+        return super.canBeTerminated() && (isRoot() || getParentDirectory().isWritable()) && getNbItems() == 0;
     }
     
 	/**********************************************************
@@ -693,7 +692,7 @@ public class Directory extends RealDiskItem {
 			 return item.getParentDirectory()==this;
 		 }
 		 return (!exists(item.getName())) && 
-		        (item.isRoot() || item.getParentDirectory().isWritable());		 
+		        ( item.isRoot() || item.getParentDirectory().isWritable());		 
 	  }
 
 
@@ -793,5 +792,100 @@ public class Directory extends RealDiskItem {
 		  
 		  super.move(target);
 	}
+	/**
+	 * Turns this disk item in a root disk item.
+	 * 
+	 * @post   The disk item is a root disk item.
+	 *         | new.isRoot()
+     * @effect If this disk item is not a root, this disk item is
+     *         removed from its parent directory.
+     *         | if (!isRoot())
+     *         | then getParentDirectory().
+     *         |          removeFromItemsAndUpdateModificationTime(this)
+	 * @throws DiskItemNotWritableException [must]
+	 *         This diskitem is not a root item and either this 
+	 *         diskitem is not writable or its parent directory
+	 *         is not writable.
+	 *         | !isRoot() && (!isWritable() || 
+	 *         |               !getParentDirectory().isWritable())
+	 */ 
+	public void makeRoot() throws DiskItemNotWritableException {
+      if (!isRoot()) {
+        if (!isWritable()) {
+	      throw new DiskItemNotWritableException(this);
+		}	          
+		try {
+		  getParentDirectory().removeFromItemsAndUpdateModificationTime(this);
+          //	 throws DiskItemNotWritableException if
+		  // the parent is not writable
+		} catch (NoSuchItemException e) {
+		  //cannot occur
+		  assert false;
+		}
+		setParentDirectory(null);
+		setModificationTime();
+	  }
+	}
+	/**
+	 * Check whether this item is a root item.
+	 * 
+	 * @return  True if this item has a noneffective parent directory;
+	 *          false otherwise.
+	 *        | result == (getParentDirectory() == null)
+	 */
+	@Raw public boolean isRoot() {
+		return getParentDirectory() == null;
+	}
+	public DirectoryIterator getItems() {
+		return new DirectoryIterator() {
+			/**
+			 * Return the number of remaining disk items to be
+			 * returned by this directory-iterator, including
+			 * the current item.
+			 * 
+			 * @see		DirectoryIterator
+			 */
+			public int getNbRemainingItems() {
+				return items.size() - currentIndex;
+			}
+			/**
+			 * Return the current disk item of this directory-iterator.
+			 * 
+			 * @see		DirectoryIterator
+			 */
+			public DiskItem getCurrentItem() throws IndexOutOfBoundsException {
+				return items.get(currentIndex);
+			}
+			/**
+			 * Advance the current item of this directory-iterator to the
+			 * next disk item. 
+			 * 
+			 * @see		DirectoryIterator
+			 */
+			public void advance() {
+				currentIndex++;
+			}
+			/**
+			 * Reset this directory-iteraror to its first item.
+			 * 
+			 * @see		DirectoryIterator
+			 */
+			public void reset() {
+				currentIndex = 0;
+			}
+			//Variable indexing the current element of this directory-iterator.
+			private int currentIndex = 0;
+		};
+	}
 	
+	public long getTotalDiskUsage()
+	{
+		
+		long result = 0;
+		for(DirectoryIterator iterator = getItems(); iterator.getNbRemainingItems() > 0; iterator.advance())
+		{
+			result += iterator.getCurrentItem().getTotalDiskUsage();
+		}
+		return result;
+	}
 }

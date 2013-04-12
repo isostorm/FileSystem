@@ -19,7 +19,7 @@ import filesystem.exception.*;
  * @invar   	Each disk item must have a proper parent directory.
  *          	| hasValidParentDirectory()
  */
-public abstract class DiskItem {
+public abstract class DiskItem implements DiskItemInterface{
 
 	/**********************************************************
 	* Constructors
@@ -52,7 +52,11 @@ public abstract class DiskItem {
 		setName(name);
 		/*setWritability(writable);*/
 	}
-	    
+	
+	protected boolean isRoot()
+	{
+		return false;
+	}
 	/**
 	 * Initialize a new disk item with given parent directory, name 
 	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX and writability.
@@ -110,13 +114,10 @@ public abstract class DiskItem {
 	 *         |  !canHaveAsNameInParentDirectory(name,parent))
 	 */
 	 @Model protected DiskItem(Directory parent, String name) 
-	              throws IllegalArgumentException, 
-	                     DiskItemNotWritableException {
+	              throws IllegalArgumentException, DiskItemNotWritableException{
 	   if ((parent == null) ||
 		   (parent.isWritable() && !canHaveAsNameInParentDirectory(name,parent)))
 	     throw new IllegalArgumentException();
-	   if (!parent.isWritable())
-	     throw new DiskItemNotWritableException(parent);
 	   setNameForParentDirectory(name,parent);
 	   try {
 		setParentDirectory(parent);
@@ -162,8 +163,7 @@ public abstract class DiskItem {
 	public boolean canBeTerminated() {
 		// when the result is undefined according to the specification,
 		// the implementation returns true.
-		return !isTerminated() &&
-		       (isRoot() || getParentDirectory().isWritable());
+		return !isTerminated();
 	}
 
 	/**
@@ -189,7 +189,7 @@ public abstract class DiskItem {
 		} catch (NullPointerException e) {
 		   // this item is a root item and can thus not
 		   // be removed from its parent directory.
-		   assert isRoot();
+		   //assert isRoot();
 		} catch (DiskItemNotWritableException e) {
 		   // cannot occur: canBeDeleted() implies 
 		   //               getParentDirectory().isWritable()
@@ -718,40 +718,7 @@ public abstract class DiskItem {
 	}
 		
 	 
-	/**
-	 * Turns this disk item in a root disk item.
-	 * 
-	 * @post   The disk item is a root disk item.
-	 *         | new.isRoot()
-     * @effect If this disk item is not a root, this disk item is
-     *         removed from its parent directory.
-     *         | if (!isRoot())
-     *         | then getParentDirectory().
-     *         |          removeFromItemsAndUpdateModificationTime(this)
-	 * @throws DiskItemNotWritableException [must]
-	 *         This diskitem is not a root item and either this 
-	 *         diskitem is not writable or its parent directory
-	 *         is not writable.
-	 *         | !isRoot() && (!isWritable() || 
-	 *         |               !getParentDirectory().isWritable())
-	 */ 
-	public void makeRoot() throws DiskItemNotWritableException {
-      if (!isRoot()) {
-        if (!isWritable()) {
-	      throw new DiskItemNotWritableException(this);
-		}	          
-		try {
-		  getParentDirectory().removeFromItemsAndUpdateModificationTime(this);
-          //	 throws DiskItemNotWritableException if
-		  // the parent is not writable
-		} catch (NoSuchItemException e) {
-		  //cannot occur
-		  assert false;
-		}
-		setParentDirectory(null);
-		setModificationTime();
-	  }
-	}
+
 			  	 
 	
 	/**
@@ -777,16 +744,7 @@ public abstract class DiskItem {
 			    	) );
 	}
 
-	/**
-	 * Check whether this item is a root item.
-	 * 
-	 * @return  True if this item has a noneffective parent directory;
-	 *          false otherwise.
-	 *        | result == (getParentDirectory() == null)
-	 */
-	@Raw public boolean isRoot() {
-		return getParentDirectory() == null;
-	}
+
 
 	/**
 	 * Check whether this item belongs to a proper parent 
@@ -903,7 +861,8 @@ public abstract class DiskItem {
 	 *         parent directory.
 	 *         | ! canHaveAsParentDirectory(parentDirectory)
 	 */
-	@Raw private void setParentDirectory(Directory parentDirectory)
+	@Raw
+	protected void setParentDirectory(Directory parentDirectory)
 			throws IllegalArgumentException {
 		if (!canHaveAsParentDirectory(parentDirectory)) {
 			throw new IllegalArgumentException("Inappropriate item!");
@@ -928,5 +887,70 @@ public abstract class DiskItem {
 	 *        | canHaveAsParentDirectory(parentDirectory)
 	 */
 	private Directory parentDirectory;
-
+	
+	@Override
+	public boolean canBeRecursivelyDeleted() {
+		for(DiskItem
+		return false;
+	}
+	@Override
+	public void deleteRecursive() throws ImpossibleDeletionException {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public boolean canHaveAsName(String name) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean hasProperName() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean hasProperCreationTime() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean hasProperModificationTime() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean hasEffectiveParentDirectory() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public String getAbsolutePath() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public boolean hasProperParentDirectory() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean canAcceptAsNewParentDirectory(Directory directory) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean moveViolatesWritability(Directory target) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public long getTotalDiskUsage() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public void copy(Directory target) throws DiskItemNotWritableException {
+		// TODO Auto-generated method stub
+		
+	}
 }

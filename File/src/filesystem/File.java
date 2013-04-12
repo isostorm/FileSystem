@@ -97,7 +97,25 @@ public class File extends RealDiskItem{
         setSize(size);
         this.type=type;
     }
-
+    
+    /**
+     * Check whether this directory can be deleted.
+     * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+     * @return False if either:
+     *         - this directory is already terminated
+     *         - this directory is not writable
+     *         - this directory is not a root, and its parent
+     *           directory is not writable
+     *         - this directory is not empty;
+     *         True otherwise.
+     *       | result == 
+     *       |   !( isTerminated() || !isWritable() || getNbItems()>0 ||
+     *       |      (!isRoot() && !getParentDirectory().isWritable()) )
+     * @see superclass
+     */
+    public boolean canBeTerminated() {
+        return super.canBeTerminated() && getParentDirectory().isWritable();
+    }
     /**
      * Initialize a new writable, empty file with given parent directory
      * and name.
@@ -124,7 +142,7 @@ public class File extends RealDiskItem{
 	* Return a textual representation of this file.
 	* 
 	* @return  The name of this file followed by a dot
-	*          followed by the extension respresenting the
+	*          followed by the extension representing the
 	*          type of this file.
 	*          | result.equals(getName()+"."+getExtension())
 	*/    
@@ -313,4 +331,13 @@ public class File extends RealDiskItem{
      * Variable registering the size of this file (in bytes).
      */
     private int size;
+    /**
+     * Returns the total disk usage of this file.
+     * 
+     * @result TODO
+     */
+	public long getTotalDiskUsage()
+	{
+		return getSize();
+	}
 }
