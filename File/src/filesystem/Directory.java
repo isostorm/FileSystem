@@ -884,7 +884,7 @@ public class Directory extends RealDiskItem {
 	 * @return The size of each file in the direct or indirect subdirectories 
 	 * 		   of this directory, added together
 	 * 			| foreach diskItem in items
-	 * 				SUM(diskItem.getTotalDiskUsage()
+	 * 				SUM(diskItem.getTotalDiskUsage())
 	 */
 	public long getTotalDiskUsage()
 	{
@@ -895,5 +895,48 @@ public class Directory extends RealDiskItem {
 			result += iterator.getCurrentItem().getTotalDiskUsage();
 		}
 		return result;
+	}
+	
+	/**
+	 * Check whether this item and all its direct or indirect subitems can be deleted
+	 * 
+	 * @return  True if and only if all the direct or indiret sub items can be deleted
+	 * 			| for each diskItem in items
+	 * 				diskItem.canBeRecursivelyDeleted() == true
+	 */
+	@Override
+	public boolean canBeRecursivelyDeleted() {
+		
+		for(DirectoryIterator iterator = getItems(); iterator.getNbRemainingItems() > 0; iterator.advance())
+		{
+			if(!iterator.getCurrentItem().canBeRecursivelyDeleted())
+				return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Delete this directory and all its direct or indirect subitems
+	 * 
+	 * @post   Each direct or indirect subitem of this directory is recursively deleted
+	 * 			| for each diskItem in items
+	 * 				diskItem.deleteRecursive()
+	 * @post   This directory is terminated
+	 * 			| terminate()
+	 * @throws ImpossibleDeletionException
+	 * 			This directory can't be recursively deleted
+	 * 			!canBeRecursivelyDeleted()
+	 */
+	@Override
+	public void deleteRecursive() throws ImpossibleDeletionException {
+		if(! canBeRecursivelyDeleted())
+			throw new ImpossibleDeletionException(this);
+		for(DirectoryIterator iterator = getItems(); iterator.getNbRemainingItems() > 0; iterator.advance())
+		{
+			iterator.getCurrentItem().deleteRecursive();
+				
+		}
+		terminate();
+		
 	}
 }

@@ -297,4 +297,26 @@ public class File extends RealDiskItem{
 	{
 		return getSize();
 	}
+	/**
+	 * Check whether this file can be deleted
+	 * @return True if and only if this file can be deleted
+	 * 			| result == canBeTerminated
+	 */
+	@Override
+	public boolean canBeRecursivelyDeleted() {
+		return canBeTerminated();
+	}
+	/**
+	 * Delete this file
+	 * @post   This file is terminated
+	 * 			| new.isTerminated()
+	 * @throws ImpossibleDeletionException
+	 * 			This link can't be recursively deleted
+	 * 			!canBeRecursivelyDeleted()
+	 */
+	@Override
+	public void deleteRecursive() throws ImpossibleDeletionException {
+		terminate();
+		
+	}
 }

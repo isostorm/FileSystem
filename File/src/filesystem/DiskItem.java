@@ -877,15 +877,6 @@ public abstract class DiskItem implements DiskItemInterface{
 	private Directory parentDirectory;
 	
 	@Override
-	public boolean canBeRecursivelyDeleted() {
-		return false;
-	}
-	@Override
-	public void deleteRecursive() throws ImpossibleDeletionException {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
 	public boolean canHaveAsName(String name) {
 		// TODO Auto-generated method stub
 		return false;
@@ -910,11 +901,26 @@ public abstract class DiskItem implements DiskItemInterface{
 		// TODO Auto-generated method stub
 		return false;
 	}
+	/**
+	 * Return the absolute path of this diskitem
+	 * 
+	 * @return The name of this diskitem preceded by the names 
+	 * 		   of all the direct and indirect parent directories of this diskitem, separated by slashes
+	 * 			|		 do{
+	 * 						result =  item.toString() + "/" + result;
+						  }while(item.getParentDirectory() != null);
+	 */
 	@Override
 	public String getAbsolutePath() {
-		// TODO Auto-generated method stub
-		return null;
+		DiskItem item = this;
+		String path = "";
+		do{
+			path =  item.toString() + "/" + path;
+		}while(item.getParentDirectory() != null);
+		
+		return path;
 	}
+	
 	@Override
 	public boolean hasProperParentDirectory() {
 		// TODO Auto-generated method stub
@@ -930,14 +936,20 @@ public abstract class DiskItem implements DiskItemInterface{
 		// TODO Auto-generated method stub
 		return false;
 	}
-	@Override
-	public long getTotalDiskUsage() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+
 	@Override
 	public void copy(Directory target) throws DiskItemNotWritableException {
 		// TODO Auto-generated method stub
 		
+	}
+	/**
+	 * Get a textual representation of this diskItem
+	 * 
+	 * @return The name of this diskitem
+	 * 			| result == name
+	 */
+	@Override
+	public String toString(){
+		return name;
 	}
 }

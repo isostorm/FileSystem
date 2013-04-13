@@ -1,6 +1,7 @@
 package filesystem;
 
 import filesystem.exception.DiskItemNotWritableException;
+import filesystem.exception.ImpossibleDeletionException;
 
 public abstract class  Link extends DiskItem{
 	/**
@@ -38,4 +39,39 @@ public abstract class  Link extends DiskItem{
 	}
 
 	private RealDiskItem referral;
+	
+	/**
+	 * Check whether this link can be deleted
+	 * @return True if and only if this file can be deleted
+	 * 			| result == canBeTerminated
+	 */
+	@Override
+	public boolean canBeRecursivelyDeleted() {
+		return canBeTerminated();
+	}
+	/**
+	 * Delete this link
+	 * @post   This link is terminated
+	 * 			| new.isTerminated()
+	 * @throws ImpossibleDeletionException
+	 * 			This link can't be recursively deleted
+	 * 			!canBeRecursivelyDeleted()
+	 */
+	@Override
+	public void deleteRecursive() throws ImpossibleDeletionException {
+		terminate();
+		
+	}
+	
+	/**
+     * Returns the total disk usage of this file (always 0)
+     * 
+     * @return Returns 0
+     *			| result == 0
+     */
+    
+	final public long getTotalDiskUsage()
+	{
+		return 0;
+	}
 }
