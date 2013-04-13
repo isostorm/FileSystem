@@ -2,7 +2,6 @@ package filesystem;
 
 import java.util.Date;
 
-import filesystem.*;
 import filesystem.exception.*;
 public interface DiskItemInterface {
 	/**********************************************************
@@ -497,8 +496,6 @@ public interface DiskItemInterface {
 	   *        |   ( canHaveAsParentDirectory(getParentDirectory()) &&
 	   *        |     ( !hasEffectiveParentDirectory() || 
 	   *        |       getParentDirectory().hasAsItem(this) ) )
-	   * TODO merk op in slides: dit hoeft niet geherdefinieerd, de test voor hEPD is enkel 
-	   *      relevant voor directories
 	   */
 	  boolean hasProperParentDirectory();
 	  

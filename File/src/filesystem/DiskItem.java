@@ -24,49 +24,14 @@ public abstract class DiskItem implements DiskItemInterface{
 	/**********************************************************
 	* Constructors
 	**********************************************************/
-	    
 	/**
-	 * Initialize a new root disk item with given name and writability.
+	 * Initialize a new disk item with given parent directory and name 
 	 * 
-	 * @param  name
-	 *         The name of the new disk item.
-	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX@param  writable
-	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX        The writability of the new disk item.
-	 * @post   The new disk item is a root disk item.
-	 *         | new.isRoot()
-	 * @effect The new disk item has the given name (if legal) or a
-	 *         legal name.
-	 *         | setName(name) 
-	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXX@effect The new disk item has the given writability.
-	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXX        | setWritability(writable)
-	 * @post   The creation time is initialized to some time during 
-	 *         constructor execution.
-	 *         | (new.getCreationTime().getTime() >= 
-	 *         |             System.currentTimeMillis()) &&
-	 *         | (new.getCreationTime().getTime() <=
-	 *         |             (new System).currentTimeMillis())
-	 * @post   The new file has no time of last modification.
-	 *         | new.getModificationTime() == null     
-	 */
-	@Model protected DiskItem(String name/*, /*boolean writable*/) {
-		setName(name);
-		/*setWritability(writable);*/
-	}
-	
-	protected boolean isRoot()
-	{
-		return false;
-	}
-	/**
-	 * Initialize a new disk item with given parent directory, name 
-	 * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX and writability.
 	 *   
 	 * @param  parent
 	 *         The parent directory of the new disk item.
 	 * @param  name
 	 *         The name of the new disk item.  
-	 *XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX @param  writable
-	 *XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX         The writability of the new disk item.
 	 * @post   The given directory is registered as the parent 
 	 *         directory of this item.
 	 *         | new.getParentDirectory() == parent
@@ -92,8 +57,6 @@ public abstract class DiskItem implements DiskItemInterface{
 	 *         | if (isValidName(name) && !parent.exists(name)
 	 *         |      then new.getName().equals(name)
 	 *         |      else new.hasValidName()
-	 *XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX @post   The new disk item has the given writability.
-	 *XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX         | new.isWritable() == writable
 	 * @post   The creation time is initialized to some time during 
 	 *         constructor execution.
 	 *         | (new.getCreationTime().getTime() >= 
@@ -135,6 +98,31 @@ public abstract class DiskItem implements DiskItemInterface{
 		   assert false;
 	   }
 	 }
+	/**
+	 * Initialize a new root disk item with given name.
+	 * 
+	 * @param  name
+	 *         The name of the new disk item.
+	 * @post   The new disk item is a root disk item.
+	 *         | new.isRoot()
+	 * @effect Initialize a new diskitem with null as its parent and the given name
+	 *         | this(null, name)
+	 */
+	@Model protected DiskItem(String name)
+				throws DiskItemNotWritableException
+	{
+		this(null, name);
+	}
+	/**
+	 * Check whether this diskitem is in the root
+	 * @return false, because 
+	 */
+	@Model
+	protected boolean isRoot()
+	{
+		return false;
+	}
+	
 	    
 	/**********************************************************
 	 * delete/termination
@@ -208,7 +196,7 @@ public abstract class DiskItem implements DiskItemInterface{
 	
 	/**
 	 * Check whether this disk item can have the given terminated-state
-	 * as ist terminated-state.
+	 * as its terminated-state.
 	 * @param terminatedState
 	 *        The terminated-state to check.
 	 * @return True if this disk item is not terminated, or if the given

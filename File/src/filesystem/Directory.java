@@ -34,7 +34,7 @@ public class Directory extends RealDiskItem {
      *         name and writability.
      *         | super(name,writable)
     */
-    public Directory(String name, boolean writable) {
+    public Directory(String name, boolean writable) throws IllegalArgumentException, DiskItemNotWritableException {
         super(name,writable);
     }
     
@@ -47,7 +47,7 @@ public class Directory extends RealDiskItem {
      *         and is writable.
      *         | this(name,true)
      */
-    public Directory(String name) {
+    public Directory(String name) throws IllegalArgumentException, DiskItemNotWritableException {
         this(name,true); 
     }
     
@@ -878,7 +878,14 @@ public class Directory extends RealDiskItem {
 			private int currentIndex = 0;
 		};
 	}
-	
+	/**
+	 * Returns the total diskspace this directory uses
+	 * 
+	 * @return The size of each file in the direct or indirect subdirectories 
+	 * 		   of this directory, added together
+	 * 			| foreach diskItem in items
+	 * 				SUM(diskItem.getTotalDiskUsage()
+	 */
 	public long getTotalDiskUsage()
 	{
 		

@@ -62,16 +62,10 @@ public class File extends RealDiskItem{
     /**
      * Check whether this directory can be deleted.
      * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-     * @return False if either:
-     *         - this directory is already terminated
-     *         - this directory is not writable
-     *         - this directory is not a root, and its parent
-     *           directory is not writable
-     *         - this directory is not empty;
-     *         True otherwise.
+     * @return True if and only if the super method returns true and 
+     * 			if the parent directory of this file is writable
      *       | result == 
-     *       |   !( isTerminated() || !isWritable() || getNbItems()>0 ||
-     *       |      (!isRoot() && !getParentDirectory().isWritable()) )
+     *       |   super.canBeTerminated() && getParentDirectory().isWritable()
      * @see superclass
      */
     public boolean canBeTerminated() {
@@ -295,8 +289,10 @@ public class File extends RealDiskItem{
     /**
      * Returns the total disk usage of this file.
      * 
-     * @result TODO
+     * @return Returns the size of this file
+     *			| result == getSize()
      */
+    
 	public long getTotalDiskUsage()
 	{
 		return getSize();
