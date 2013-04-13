@@ -890,7 +890,6 @@ public abstract class DiskItem implements DiskItemInterface{
 	
 	@Override
 	public boolean canBeRecursivelyDeleted() {
-		for(DiskItem
 		return false;
 	}
 	@Override
