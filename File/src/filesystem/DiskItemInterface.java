@@ -483,61 +483,9 @@ public interface DiskItemInterface {
 	   */
 	  boolean canHaveAsParentDirectory(Directory directory);
 	  
-	  /**
-	   * Check whether this item belongs to a proper parent 
-	   * directory [raw].
-	   *
-	   * @return  True if this item can have its parent directory
-	   *          (possibly not effective) as parent directory, and 
-	   *          if in case this item has an effective parent directory, this item is 
-	   *          registered as one of the items of that real directory; 
-	   *          false otherwise.
-	   *        | result ==
-	   *        |   ( canHaveAsParentDirectory(getParentDirectory()) &&
-	   *        |     ( !hasEffectiveParentDirectory() || 
-	   *        |       getParentDirectory().hasAsItem(this) ) )
-	   */
-	  boolean hasProperParentDirectory();
 	  
-		/**
-		 * Check whether this disk item can accept the given real directory
-		 * as its new parent directory.
-		 * 
-		 * @param	directory
-		 * 			The real directory to check.
-		 * @return  True if this disk item is not terminated, 
-		 *          the given real directory effective and not terminated,
-		 *          this disk item can have the given real directory as its 
-		 *          parent directory, and moving this disk item to the
-		 *          given real directory does not violate writability 
-		 *          restrictions; 
-		 *          false otherwise.
-		 * 			|	result ==
-		 * 			|		(! isTerminated()) &&
-		 * 			|		( (directory != null) &&
-		 * 			|				(! directory.isTerminated() ) ) &&
-		 * 			|		canHaveAsParentDirectory(directory) &&
-		 *          |       !moveViolatesWritability(directory)
-		 */
-		boolean canAcceptAsNewParentDirectory(Directory directory);
 		
-		/**
-		 * Indicate whether the move of this disk item to the given
-		 * real directory violates writability restrictions.
-		 * 
-		 * @param target
-		 *        The target directory of the prospective move.
-		 * @return False if either:
-		 *         - this item has an effective parent directory that
-		 *           is not writable.
-		 *         - the target directory is effective and not writable.
-		 *         Undefined otherwise.
-		 *       | if ( ( hasEffectiveParentDirectory() && 
-		 *       |        !getParentDirectory().isWritable() ) ||
-		 *       |      ( target != null && !target.isWritable() ) )
-		 *       |   then result == false
-		 */
-		boolean moveViolatesWritability(Directory target);
+
 	  
 		
 	  /**
@@ -651,17 +599,6 @@ public interface DiskItemInterface {
 	   * @return The result is positive.
 	   *       | result >= 0
 	   */
-	  long getTotalDiskUsage();	  
-	  /**
-	   * Copy the disk item to the given target directory.
-	   * The name of the copy starts with the name of this disk item,
-	   * followed by "_copy". 
-	   * 
-	   * @param target 
-	   *        The target directory.
-	   * @throws DiskItemNotWritableException
-	   *         The target directory is not writable
-	   */
-	  void copy(Directory target) throws DiskItemNotWritableException;
+	  long getTotalDiskUsage();
 
 }

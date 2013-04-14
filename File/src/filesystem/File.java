@@ -61,7 +61,6 @@ public class File extends RealDiskItem{
     
     /**
      * Check whether this directory can be deleted.
-     * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
      * @return True if and only if the super method returns true and 
      * 			if the parent directory of this file is writable
      *       | result == 

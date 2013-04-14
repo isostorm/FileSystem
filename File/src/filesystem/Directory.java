@@ -35,7 +35,8 @@ public class Directory extends RealDiskItem {
      *         | super(name,writable)
     */
     public Directory(String name, boolean writable) throws IllegalArgumentException, DiskItemNotWritableException {
-        super(name,writable);
+    	super(name);
+    	setWritability(writable);
     }
     
     /**
@@ -931,11 +932,11 @@ public class Directory extends RealDiskItem {
 	public void deleteRecursive() throws ImpossibleDeletionException {
 		if(! canBeRecursivelyDeleted())
 			throw new ImpossibleDeletionException(this);
+		ArrayList<DiskItem> toDelete = new ArrayList<DiskItem>();
 		for(DirectoryIterator iterator = getItems(); iterator.getNbRemainingItems() > 0; iterator.advance())
-		{
-			iterator.getCurrentItem().deleteRecursive();
-				
-		}
+			toDelete.add(iterator.getCurrentItem());
+		for(DiskItem item : toDelete)
+			item.deleteRecursive();
 		terminate();
 		
 	}

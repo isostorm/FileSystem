@@ -36,6 +36,21 @@ public abstract class RealDiskItem extends DiskItem {
 		
 	}
 	/**
+	 * Initialize a new root disk item with given name.
+	 * 
+	 * @param  name
+	 *         The name of the new disk item.
+	 * @post   The new disk item is a root disk item.
+	 *         | new.isRoot()
+	 * @effect Initialize a new diskitem with null as its parent and the given name
+	 *         | this(null, name)
+	 */
+	@Model protected RealDiskItem(String name)
+				throws DiskItemNotWritableException
+	{
+		   super(name);
+	}
+	/**
 	 * Initialize this real diskitem with a given name and writability
 	 * 
 	 * @param name

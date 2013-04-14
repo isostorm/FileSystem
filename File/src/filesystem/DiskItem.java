@@ -98,6 +98,7 @@ public abstract class DiskItem implements DiskItemInterface{
 		   assert false;
 	   }
 	 }
+	 
 	/**
 	 * Initialize a new root disk item with given name.
 	 * 
@@ -111,11 +112,11 @@ public abstract class DiskItem implements DiskItemInterface{
 	@Model protected DiskItem(String name)
 				throws DiskItemNotWritableException
 	{
-		this(null, name);
+		   setName(name);
 	}
 	/**
-	 * Check whether this diskitem is in the root
-	 * @return false, because 
+	 * Check whether this diskitem is a root disk item.
+	 * @return false
 	 */
 	@Model
 	protected boolean isRoot()
@@ -169,9 +170,9 @@ public abstract class DiskItem implements DiskItemInterface{
 	 * 		   | ! canBeTerminated()
 	 */
 	public void terminate() throws ImpossibleDeletionException {
-		if (!canBeTerminated()) {
+		/*if (!canBeTerminated()) {
 			throw new ImpossibleDeletionException(this);
-		}
+		}*/
 		try {
 			getParentDirectory().removeFromItemsAndUpdateModificationTime(this);
 		} catch (NullPointerException e) {
@@ -480,7 +481,8 @@ public abstract class DiskItem implements DiskItemInterface{
 	 *          |      then new.getName().equals(name)
 	 *          |      else new.hasValidName()
 	 */
-	@Model @Raw private void setName(String name) {
+	@Model @Raw
+	private void setName(String name) {
 		if (isValidName(name)) {
 			this.name = name;
 		}
@@ -795,7 +797,7 @@ public abstract class DiskItem implements DiskItemInterface{
 		if (getParentDirectory() == directory)
 			return directory.hasAsItem(this);
 		return directory.isWritable()
-			&& (isRoot() || getParentDirectory().isWritable());
+			&& (isRoot() || getParentDirectory() == null || getParentDirectory().isWritable());
 	}
 
 	/**
@@ -915,33 +917,14 @@ public abstract class DiskItem implements DiskItemInterface{
 		DiskItem item = this;
 		String path = "";
 		do{
-			path =  item.toString() + "/" + path;
-		}while(item.getParentDirectory() != null);
-		
+			path =    "/" + item.toString() + path;
+			item = item.getParentDirectory();
+		}while(!item.isRoot());
+		path =   "/" + item.toString() + path;
 		return path;
 	}
 	
-	@Override
-	public boolean hasProperParentDirectory() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	@Override
-	public boolean canAcceptAsNewParentDirectory(Directory directory) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	@Override
-	public boolean moveViolatesWritability(Directory target) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
-	@Override
-	public void copy(Directory target) throws DiskItemNotWritableException {
-		// TODO Auto-generated method stub
-		
-	}
 	/**
 	 * Get a textual representation of this diskItem
 	 * 
